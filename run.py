@@ -11,7 +11,6 @@ from app import KinesisClient
 from app import MessageGenerator
 from app import S3Client
 from datetime import datetime
-from dateutil import parser
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
