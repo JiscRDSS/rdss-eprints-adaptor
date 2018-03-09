@@ -1,4 +1,4 @@
-import argparse
+#!/usr/bin/env python3
 import json
 import logging
 import os
@@ -17,26 +17,19 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 def main():
-    args = _parse_args()
-
+    settings = _get_settings()
     download_client = DownloadClient()
     dynamodb_client = DynamoDBClient(
-        args.dynamodb_watermark_table_name,
-        args.dynamodb_processed_table_name
+        settings['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'],
+        settings['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME']
     )
-    eprints_client = EPrintsClient(args.eprints_url)
-    kinesis_client = KinesisClient(args.output_kinsis_stream_name)
+    eprints_client = EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
+    kinesis_client = KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
     message_generator = MessageGenerator()
-    s3_client = S3Client(args.s3_bucket_name)
-
-    start_timestamp = args.start_timestamp
-    if start_timestamp is not None:
-        start_timestamp = parser.parse(start_timestamp)
-    else:
-        start_timestamp = dynamodb_client.fetch_high_watermark()
-        if start_timestamp is None:
-            start_timestamp = datetime.utcfromtimestamp(0)
-
+    s3_client = S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
+    start_timestamp = dynamodb_client.fetch_high_watermark()
+    if start_timestamp is None:
+        start_timestamp = datetime.utcfromtimestamp(0)
     records = eprints_client.fetch_records_from(start_timestamp)
     for record in records:
         logging.info('Processing EPrints record [%s]', record)
@@ -71,7 +64,7 @@ def _process_record(download_client, dynamodb_client, s3_client, kinesis_client,
         try:
             s3_objects = _push_files_to_s3(download_client, s3_client, record)
             message = message_generator.generate_metadata_create(record, s3_objects)
-            message = format_message(message)
+            message = _format_message(message)
             kinesis_client.put_message_on_queue(message)
             dynamodb_client.update_high_watermark(record['header']['datestamp'])
         except Exception as e:
@@ -101,7 +94,7 @@ def _push_files_to_s3(download_client, s3_client, record):
     return file_locations
 
 
-def format_message(message):
+def _format_message(message):
     try:
         json_payload = json.loads(message, strict=False)
         return json.dumps(json_payload)
@@ -109,33 +102,26 @@ def format_message(message):
         logging.exception('An error occurred decoding the message [%s]', message)
 
 
-def _parse_args():
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument(
-        'eprints_url',
-        help='URL of the EPrints OAI-PMH endpoint'
-    )
-    arg_parser.add_argument(
-        'dynamodb_watermark_table_name',
-        help='Name of the DynamoDB table containing the high watermark'
-    )
-    arg_parser.add_argument(
-        'dynamodb_processed_table_name',
-        help='Name of the DynamoDB table containing the processed EPrints identifiers'
-    )
-    arg_parser.add_argument(
-        's3_bucket_name',
-        help='Name of the S3 Bucket into which EPrints files are stored'
-    )
-    arg_parser.add_argument(
-        'output_kinsis_stream_name',
-        help='Name of the Kinsis Stream to put processed messages on'
-    )
-    arg_parser.add_argument(
-        '--start_timestamp',
-        help='ISO86001 timestamp to start processing EPrints records from'
-    )
-    return arg_parser.parse_args()
+def _parse_env_vars(env_var_names):
+    env_vars = {name: os.environ.get(name) for name in env_var_names}
+    if not all(env_vars.values()):
+        missing = (name for name, exists in env_vars.items() if not exists)
+        logging.error(
+            'The following environment variables have not been set: [%s]',
+            ', '.join(missing)
+        )
+        sys.exit(-1)
+    return env_vars
+
+
+def _get_settings():
+    return _parse_env_vars((
+        'EPRINTS_EPRINTS_URL',
+        'EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME',
+        'EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME',
+        'EPRINTS_S3_BUCKET_NAME',
+        'EPRINTS_OUTPUT_KINESIS_STREAM_NAME'
+    ))
 
 
 if __name__ == '__main__':
