@@ -22,7 +22,7 @@ class KinesisClient(object):
 
     def _initialise_queue_worker(self):
         try:
-            queue_worker = Thread(target=self._process_queue, name="KinesisQueueWorker")
+            queue_worker = Thread(target=self._process_queue, name='KinesisQueueWorker')
             logging.info('Starting Kinesis queue worker [%s]', queue_worker)
             queue_worker.start()
         except:

@@ -19,7 +19,7 @@ class DownloadClient(object):
             return None
 
     def _get_temp_file_name(self):
-        temp_file = tempfile.mkstemp(prefix="eprints_adaptor-", suffix=".download")
+        temp_file = tempfile.mkstemp(prefix='eprints_adaptor-', suffix='.download')
         logging.info('Generated temporary file [%s]', temp_file)
         return temp_file
 
@@ -30,7 +30,7 @@ class DownloadClient(object):
         if response.status_code == 200:
             total_size = int(response.headers.get('content-length', 0))
             wrote = 0
-            with open(target_file_path, "wb") as handle:
+            with open(target_file_path, 'wb') as handle:
                 for data in tqdm(
                         response.iter_content(1024),
                         total=math.ceil(total_size // 1024),

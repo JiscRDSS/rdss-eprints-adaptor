@@ -72,8 +72,8 @@ class S3Client(object):
     def _calculate_file_checksum(self, file_path):
         hash_md5 = hashlib.md5()
         logging.info('Calculating MD5 checksum for file [%s]', file_path)
-        with open(file_path, "rb") as file:
-            for chunk in iter(lambda: file.read(4096), b""):
+        with open(file_path, 'rb') as file:
+            for chunk in iter(lambda: file.read(4096), b''):
                 hash_md5.update(chunk)
         checksum = hash_md5.hexdigest()
         logging.info('Got MD5 checksum value [%s] for file[%s]', checksum, file_path)

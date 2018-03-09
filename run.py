@@ -39,7 +39,7 @@ def main():
 
     records = eprints_client.fetch_records_from(start_timestamp)
     for record in records:
-        logging.info("Processing EPrints record [%s]", record)
+        logging.info('Processing EPrints record [%s]', record)
         _process_record(
             download_client,
             dynamodb_client,
