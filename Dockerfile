@@ -10,8 +10,7 @@ RUN sed -i 's/S3_BUCKET_NAME/$S3_BUCKET_NAME/' /etc/cron.d/run-eprints-adaptor-c
 RUN sed -i 's/OUTPUT_KINSIS_STREAM_NAME/$OUTPUT_KINSIS_STREAM_NAME/' /etc/cron.d/run-eprints-adaptor-cron
 
 WORKDIR /app
-COPY run.py /app
-COPY app/ /app
+COPY . /app
 
 RUN pip install -r requirements.txt
 
