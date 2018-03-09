@@ -25,7 +25,7 @@ class KinesisClient(object):
             queue_worker = Thread(target=self._process_queue, name='KinesisQueueWorker')
             logging.info('Starting Kinesis queue worker [%s]', queue_worker)
             queue_worker.start()
-        except:
+        except Exception:
             logging.exception('An error occurred initialising the Kinesis queue worker')
             sys.exit(-1)
 
