@@ -1,1 +1,1 @@
-30 * * * * root /usr/local/bin/python3 /app/run.py EPRINTS_URL DYNAMODB_WATERMARK_TABLE_NAME DYNAMODB_PROCESSED_TABLE_NAME S3_BUCKET_NAME OUTPUT_KINSIS_STREAM_NAME > /proc/1/fd/1 2>/proc/1/fd/2
+30 * * * * root /usr/local/bin/python3 /app/run.py > /proc/1/fd/1 2>/proc/1/fd/2
