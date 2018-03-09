@@ -105,7 +105,7 @@ def format_message(message):
     try:
         json_payload = json.loads(message, strict=False)
         return json.dumps(json_payload)
-    except:
+    except Exception:
         logging.exception('An error occurred decoding the message [%s]', message)
 
 
