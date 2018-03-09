@@ -1,0 +1,13 @@
+language: python
+
+python:
+  - "3.6"
+
+before_install:
+  - apt-get update -yqq
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - pre-commit run --all-files --verbose
