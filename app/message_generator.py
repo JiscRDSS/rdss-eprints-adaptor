@@ -15,6 +15,7 @@ class MessageGenerator(object):
 
     def _initialise_environment(self):
         logging.info('Loading templates in directory [templates] from package [app]')
+        # We use Jinja2 to template the messages, this block prepares the Jinja2 environment.
         return Environment(
             loader=PackageLoader('app', 'templates'),
             autoescape=select_autoescape(
@@ -24,6 +25,8 @@ class MessageGenerator(object):
         )
 
     def generate_metadata_create(self, record, s3_objects):
+        # Generate the message by building up a dict of values and passing this into Jinja2. The
+        # .jsontemplate file will be parsed and decorated with these values.
         logging.info('Fetching template [metadata_create.jsontemplate]')
         template = self.env.get_template('metadata_create.jsontemplate')
         logging.info('Rendering template using record [%s]', record)

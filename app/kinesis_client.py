@@ -22,6 +22,8 @@ class KinesisClient(object):
 
     def _initialise_queue_worker(self):
         try:
+            # Initialise the queue worker by spawning a new thread that invokes the _process_queue
+            # method.
             queue_worker = Thread(target=self._process_queue, name='KinesisQueueWorker')
             logging.info('Starting Kinesis queue worker [%s]', queue_worker)
             queue_worker.start()
@@ -30,10 +32,13 @@ class KinesisClient(object):
             sys.exit(-1)
 
     def put_message_on_queue(self, message):
+        # Append the given message onto the queue.
         logging.info('Adding message [%s] to the queue', message)
         self.message_queue.put_nowait(message)
 
     def _process_queue(self):
+        # Queue processing will run a loop, forever, until the end of time, with 0.5 second
+        # snoozes. This prevents the Kinesis Stream from throttling.
         while True:
             logging.debug('Sleeping for [0.5] seconds before processing next message on queue')
             time.sleep(0.5)
@@ -51,6 +56,8 @@ class KinesisClient(object):
             return self.message_queue.get(False)
 
     def _put_message_to_stream(self, message):
+        # Put the message onto the Kinesis Stream, using a random partition key. This should be
+        # sufficient to guarantee random shard allocation.
         logging.info(
             'Putting message [%s] onto stream [%s] with random partition key',
             message,

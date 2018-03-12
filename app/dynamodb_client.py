@@ -17,6 +17,7 @@ class DynamoDBClient(object):
         return boto3.client('dynamodb')
 
     def fetch_high_watermark(self):
+        # Query DynamoDB to fetch the high watermark. There should only be one row in this table...
         logging.info('Fetching high watermark from table [%s]', self.watermark_table_name)
         response = self.client.get_item(
             TableName=self.watermark_table_name,
@@ -26,7 +27,11 @@ class DynamoDBClient(object):
                 }
             }
         )
+
+        # If this is a "first run", then there won't be any data in the DynamoDB table. So check
+        # first.
         if 'Item' in response:
+            # The high watermark value should be an ISO8001 compliant string.
             high_watermark = parser.parse(response['Item']['Value']['S'])
             logging.info('Got high watermark [%s]', high_watermark)
             return high_watermark
@@ -35,6 +40,8 @@ class DynamoDBClient(object):
             return None
 
     def update_high_watermark(self, high_watermark):
+        # Set the high watermark, to be the timestamp given plus 1 second. If we don't add 1
+        # second, we'll keep fetching the last record over and over.
         logging.info(
             'Setting high watermark [%s] in table [%s]',
             high_watermark,
@@ -56,6 +63,7 @@ class DynamoDBClient(object):
         )
 
     def fetch_processed_status(self, eprints_identifier):
+        # Query the DynamoDB table to fetch the status of a record with the given identifier.
         logging.info(
             'Fetching processed record with EPrints identifier [%s] from table [%s]',
             eprints_identifier,
@@ -69,6 +77,8 @@ class DynamoDBClient(object):
                 }
             }
         )
+
+        # If this identifier has never been seen before, it won't have a row in the DyanmoDB table.
         if 'Item' in response:
             status = response['Item']['Status']['S']
             logging.info(
@@ -85,6 +95,7 @@ class DynamoDBClient(object):
             return None
 
     def update_processed_record(self, eprints_identifier, message, status, reason):
+        # Add or update the row in the DynamoDB table with the given idetnfier.
         logging.info(
             'Updating processed record [%s] with a status of [%s] (reason: [%s]) in table [%s]',
             eprints_identifier,
