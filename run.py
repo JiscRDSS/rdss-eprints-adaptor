@@ -28,7 +28,8 @@ def main():
     s3_client = S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
     start_timestamp = dynamodb_client.fetch_high_watermark()
     if start_timestamp is None:
-        start_timestamp = datetime.utcfromtimestamp(0)
+        start_timestamp = datetime.now()
+        dynamodb_client.update_high_watermark(start_timestamp)
     records = eprints_client.fetch_records_from(start_timestamp)
     for record in records:
         logging.info('Processing EPrints record [%s]', record)
