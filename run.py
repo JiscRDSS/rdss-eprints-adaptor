@@ -9,10 +9,22 @@ from app import DownloadClient
 from app import DynamoDBClient
 from app import KinesisClient
 from app import MessageGenerator
+from app import PoisonPill
 from app import S3Client
 from datetime import datetime
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format="%(asctime)s [%(threadName)s] [%(levelname)s] %(name)s - %(message)s"
+)
+
+download_client = None
+dynamodb_client = None
+eprints_client = None
+kinesis_client = None
+message_generator = None
+s3_client = None
 
 
 def main():
@@ -20,15 +32,12 @@ def main():
     settings = _get_settings()
 
     # Initialise the various clients, generator, etc.
-    download_client = DownloadClient()
-    dynamodb_client = DynamoDBClient(
-        settings['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'],
-        settings['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME']
-    )
-    eprints_client = EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
-    kinesis_client = KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
-    message_generator = MessageGenerator()
-    s3_client = S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
+    _initialise_download_client()
+    _initialise_dynamodb_client(settings)
+    _initialise_eprints_clinet(settings)
+    _initialise_kinesis_client(settings)
+    _initialise_message_generator()
+    _initialise_s3_clinet(settings)
 
     # Query DynamoDB for the high watermark. If it exists, use that, otherwise this is probably a
     # "first run", so set the watermark to now.
@@ -41,18 +50,46 @@ def main():
     records = eprints_client.fetch_records_from(start_timestamp)
     for record in records:
         logging.info('Processing EPrints record [%s]', record)
-        _process_record(
-            download_client,
-            dynamodb_client,
-            s3_client,
-            kinesis_client,
-            message_generator,
-            record
-        )
+        _process_record(record)
+
+    # We're done, shut down
+    _shutdown()
 
 
-def _process_record(download_client, dynamodb_client, s3_client, kinesis_client, message_generator,
-                    record):
+def _initialise_download_client():
+    global download_client
+    download_client = DownloadClient()
+
+
+def _initialise_dynamodb_client(settings):
+    global dynamodb_client
+    dynamodb_client = DynamoDBClient(
+        settings['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'],
+        settings['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME']
+    )
+
+
+def _initialise_eprints_clinet(settings):
+    global eprints_client
+    eprints_client = EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
+
+
+def _initialise_kinesis_client(settings):
+    global kinesis_client
+    kinesis_client = KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
+
+
+def _initialise_message_generator():
+    global message_generator
+    message_generator = MessageGenerator()
+
+
+def _initialise_s3_clinet(settings):
+    global s3_client
+    s3_client = S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
+
+
+def _process_record(record):
     # Start by getting a handle on the EPrints identifier.
     eprints_identifier = record['header']['identifier']
 
@@ -76,7 +113,7 @@ def _process_record(download_client, dynamodb_client, s3_client, kinesis_client,
         message, status, reason = None, 'Success', '-'
         try:
             # Fetch from EPrints and push the files associated with the record into S3.
-            s3_objects = _push_files_to_s3(download_client, s3_client, record)
+            s3_objects = _push_files_to_s3(record)
 
             # Generate the RDSS compliant message from the EPrints record.
             message = message_generator.generate_metadata_create(record, s3_objects)
@@ -102,7 +139,7 @@ def _process_record(download_client, dynamodb_client, s3_client, kinesis_client,
         )
 
 
-def _push_files_to_s3(download_client, s3_client, record):
+def _push_files_to_s3(record):
     file_locations = []
 
     # Iterate over the metadata identifiers. Some of these are just bits and pieces of text, but
@@ -144,7 +181,7 @@ def _parse_env_vars(env_var_names):
             'The following environment variables have not been set: [%s]',
             ', '.join(missing)
         )
-        sys.exit(-1)
+        sys.exit(1)
     return env_vars
 
 
@@ -158,5 +195,15 @@ def _get_settings():
     ))
 
 
+def _shutdown():
+    logging.info('Shutting adaptor down...')
+    if kinesis_client is not None:
+        kinesis_client.put_message_on_queue(PoisonPill)
+
+
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception:
+        logging.exception('An unhandled error occurred in the main thread')
+        _shutdown()

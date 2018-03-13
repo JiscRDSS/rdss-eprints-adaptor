@@ -14,7 +14,7 @@ class KinesisClient(object):
         self.stream_name = stream_name
         self.message_queue = Queue()
         self.client = self._initialise_client()
-        self._initialise_queue_worker()
+        self.queue_worker_thread = self._initialise_queue_worker()
 
     def _initialise_client(self):
         logging.info('Initialising Boto3 Kinesis client')
@@ -27,9 +27,10 @@ class KinesisClient(object):
             queue_worker = Thread(target=self._process_queue, name='KinesisQueueWorker')
             logging.info('Starting Kinesis queue worker [%s]', queue_worker)
             queue_worker.start()
+            return queue_worker
         except Exception:
             logging.exception('An error occurred initialising the Kinesis queue worker')
-            sys.exit(-1)
+            sys.exit(1)
 
     def put_message_on_queue(self, message):
         # Append the given message onto the queue.
@@ -40,12 +41,28 @@ class KinesisClient(object):
         # Queue processing will run a loop, forever, until the end of time, with 0.5 second
         # snoozes. This prevents the Kinesis Stream from throttling.
         while True:
+
+            # Sleep for 0.5 seconds. A Kinesis Stream can tolerate 5 API operations per second, so
+            # a 0.5 sleep should ensure consumers can also interact with it whilst we are writing
+            # large quantities of messages.
             logging.debug('Sleeping for [0.5] seconds before processing next message on queue')
             time.sleep(0.5)
+
+            # Try and grab a message from the queue, and check if we got something or None.
             message = self._fetch_message_from_queue()
             logging.debug('Got message [%s] from queue', message)
             if message is not None:
-                self._put_message_to_stream(message)
+
+                # If the worker has been poisoned, then it's time to shut down. First step: break
+                # out of this loop.
+                if message == PoisonPill:
+                    logging.info('Queue worker has been poisoned, breaking out of the loop...')
+                    break
+                else:
+                    self._put_message_to_stream(message)
+
+        # Time to die.
+        logging.info('All those moments will be lost in time, like tears in rain. Time to die.')
 
     def _fetch_message_from_queue(self):
         if self.message_queue.empty():
@@ -75,3 +92,7 @@ class KinesisClient(object):
             self.stream_name,
             response['SequenceNumber']
         )
+
+
+class PoisonPill:
+    pass
