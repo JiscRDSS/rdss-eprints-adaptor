@@ -16,7 +16,7 @@ from datetime import datetime
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
-    format="%(asctime)s [%(threadName)s] [%(levelname)s] %(name)s - %(message)s"
+    format='%(asctime)s [%(threadName)s] [%(levelname)s] %(name)s - %(message)s'
 )
 
 download_client = None
