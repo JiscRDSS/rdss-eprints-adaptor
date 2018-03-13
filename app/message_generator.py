@@ -2,6 +2,7 @@ import logging
 import socket
 import uuid
 
+from ec2_metadata import ec2_metadata
 from jinja2 import select_autoescape, Environment, PackageLoader
 from datetime import datetime
 from dateutil import parser
@@ -58,9 +59,11 @@ class MessageGenerator(object):
         })
 
     def _get_machine_address(self):
+
         try:
-            return socket.gethostbyname(socket.gethostname())
-        except (socket.gaierror, socket.herror):
+            return ec2_metadata.private_ipv4
+        except Exception:
+            logging.exception('An error occurred retrieving EC2 metadata private ipv4 address')
             return '0.0.0.0'
 
     def _extract_object_title(self, record):
