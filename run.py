@@ -34,10 +34,10 @@ def main():
     # Initialise the various clients, generator, etc.
     _initialise_download_client()
     _initialise_dynamodb_client(settings)
-    _initialise_eprints_clinet(settings)
+    _initialise_eprints_client(settings)
     _initialise_kinesis_client(settings)
     _initialise_message_generator()
-    _initialise_s3_clinet(settings)
+    _initialise_s3_client(settings)
 
     # Query DynamoDB for the high watermark. If it exists, use that, otherwise this is probably a
     # "first run", so set the watermark to now.
@@ -69,7 +69,7 @@ def _initialise_dynamodb_client(settings):
     )
 
 
-def _initialise_eprints_clinet(settings):
+def _initialise_eprints_client(settings):
     global eprints_client
     eprints_client = EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
 
@@ -84,7 +84,7 @@ def _initialise_message_generator():
     message_generator = MessageGenerator()
 
 
-def _initialise_s3_clinet(settings):
+def _initialise_s3_client(settings):
     global s3_client
     s3_client = S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
 
