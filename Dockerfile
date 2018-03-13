@@ -9,6 +9,4 @@ COPY . /app
 
 RUN pip install -r requirements.txt
 
-RUN python ./certificates/certifi_append.py ./certificates/QuoVadis_Global_SSL_ICA_G2.pem
-
 CMD printenv >> /etc/environment && cron -f
