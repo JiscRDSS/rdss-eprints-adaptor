@@ -1,0 +1,70 @@
+{
+  "messageHeader": {
+    "messageId": "{{ messageHeader.messageId }}",
+    "messageClass": "Command",
+    "messageType": "MetadataCreate",
+    "messageTimings": {
+      "publishedTimestamp": "{{ messageHeader.messageTimings.publishedTimestamp }}"
+    },
+    "messageHistory": [
+      {
+        "machineId": "rdss-eprints-adaptor",
+        "machineAddress": "{{ messageHeader.messageHistory.machineAddress }}",
+        "timestamp": "{{ messageHeader.messageHistory.timestamp }}"
+      }
+    ],
+    "version": "2.1.0",
+    "generator": "eprints"
+  },
+  "messageBody": {
+    "objectUuid": "{{ messageBody.objectUuid }}",
+    "objectTitle": "{{ messageBody.objectTitle|e }}",
+    "objectPersonRole": [
+      {% for objectPersonRole in messageBody.objectPersonRole %}
+        {
+          "person": {
+            "personGivenName": "{{ objectPersonRole.person.personGivenName }}"
+          },
+        "role": 1
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectDescription": "{{ messageBody.objectDescription|e }}",
+    "objectDate": [
+      {
+        "dateValue": "{{ messageBody.objectDate.dateValue }}",
+        "dateType": 1
+      }
+    ],
+    "objectCategory": [
+      {% for objectCategory in messageBody.objectCategory %}
+      "{{ objectCategory }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectIdentifier": [
+      {
+        "identifierValue": "string",
+        "identifierType": 1,
+        "relationType": 1
+      }
+    ],
+    "objectFile": [
+      {% for objectFile in messageBody.objectFile %}
+      {
+        "fileUuid": "{{ objectFile.fileUuid }}",
+        "fileIdentifier": "{{ objectFile.fileIdentifier }}",
+        "fileName": "{{ objectFile.fileName }}",
+        "fileSize": {{ objectFile.fileSize }},
+        "fileChecksum": [
+          {
+            "checksumUuid": "{{ objectFile.fileChecksum.checksumUuid }}",
+            "checksumType": 1,
+            "checksumValue": "{{ objectFile.fileChecksum.checksumValue }}"
+          }
+        ],
+        "fileStorageLocation": "{{ objectFile.fileStorageLocation }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
