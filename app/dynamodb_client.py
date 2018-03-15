@@ -9,7 +9,7 @@ class DynamoDBClient(object):
 
     def __init__(self, watermark_table_name, processed_table_name):
         self.watermark_table_name = watermark_table_name
-        self.procesed_table_name = processed_table_name
+        self.processed_table_name = processed_table_name
         self.client = self._initialise_client()
 
     def _initialise_client(self):
@@ -67,10 +67,10 @@ class DynamoDBClient(object):
         logging.info(
             'Fetching processed record with EPrints identifier [%s] from table [%s]',
             eprints_identifier,
-            self.procesed_table_name
+            self.processed_table_name
         )
         response = self.client.get_item(
-            TableName=self.procesed_table_name,
+            TableName=self.processed_table_name,
             Key={
                 'Identifier': {
                     'S': eprints_identifier
@@ -101,10 +101,10 @@ class DynamoDBClient(object):
             eprints_identifier,
             status,
             reason,
-            self.procesed_table_name
+            self.processed_table_name
         )
         self.client.put_item(
-            TableName=self.procesed_table_name,
+            TableName=self.processed_table_name,
             Item={
                 'Identifier': {
                     'S': eprints_identifier
