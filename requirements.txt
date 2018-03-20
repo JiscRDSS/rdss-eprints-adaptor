@@ -1,11 +1,12 @@
+pre_commit==1.7.0
+pyoai==2.5.0
 pytest_cov==2.5.1
 ec2_metadata==1.6.0
-Jinja2==2.10
-pyoai==2.5.0
-tqdm==4.19.6
-pylint==1.8.2
-requests==2.18.4
 boto3==1.6.6
+tqdm==4.19.6
+requests==2.18.4
+Jinja2==2.10
 moto==1.2.0
+pylint==1.8.2
 python_dateutil==2.7.0
 google-compute-engine==2.7.6

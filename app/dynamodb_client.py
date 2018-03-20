@@ -4,6 +4,9 @@ import logging
 from datetime import datetime, timedelta
 from dateutil import parser
 
+import pytest_cov
+import pylint
+import pre_commit
 
 class DynamoDBClient(object):
 
