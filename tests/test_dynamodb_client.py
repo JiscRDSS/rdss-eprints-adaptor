@@ -1,9 +1,12 @@
 import boto3
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from dateutil import parser
 from moto import mock_dynamodb2
 from app import DynamoDBClient
+
+import pytest_cov
+import pylint
 
 test_high_watermark_last_updated = parser.parse('2018-03-20T08:48:04')
 test_high_watermark_value = parser.parse('2018-03-20T00:00:09')
