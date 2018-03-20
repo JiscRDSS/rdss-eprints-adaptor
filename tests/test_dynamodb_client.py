@@ -21,7 +21,7 @@ def test_fetch_high_watermark():
     )
 
     # Create a Boto3 DynamoDB client we'll use to create the mock table and populate it
-    boto3_client = boto3.client('dynamodb')
+    boto3_client = boto3.client('dynamodb', region_name='eu-west-2')
     boto3_client.create_table(
         TableName='rdss-eprints-adaptor-watermark-test',
         KeySchema=[
