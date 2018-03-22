@@ -9,5 +9,5 @@ pyoai==2.5.0
 pytest_cov==2.5.1
 python_dateutil==2.7.0
 requests==2.18.4
-tqdm==4.19.6
 requests-mock==1.4.0
+tqdm==4.19.6
