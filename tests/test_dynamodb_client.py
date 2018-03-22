@@ -8,7 +8,7 @@ from app import DynamoDBClient
 
 @mock_dynamodb2
 def test_watermark_table():
-    # Create the DynamoDB client we'll be testing again
+    # Create the DynamoDB client we'll be testing against
     dynamodb_client = DynamoDBClient(
         'rdss-eprints-adaptor-watermark-test',
         'rdss-eprints-adaptor-processed-test'
@@ -55,7 +55,7 @@ def test_watermark_table():
 
 @mock_dynamodb2
 def test_processed_table():
-    # Create the DynamoDB client we'll be testing again
+    # Create the DynamoDB client we'll be testing against
     dynamodb_client = DynamoDBClient(
         'rdss-eprints-adaptor-watermark-test',
         'rdss-eprints-adaptor-processed-test'
