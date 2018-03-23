@@ -1,0 +1,114 @@
+{
+  "messageHeader": {
+    "messageId": "88d72fc7-aa9c-425f-804f-e701087f97fe",
+    "messageClass": "Command",
+    "messageType": "MetadataCreate",
+    "messageTimings": {
+      "publishedTimestamp": "2018-03-15T14:35:01.957697"
+    },
+    "messageHistory": [
+      {
+        "machineId": "rdss-eprints-adaptor",
+        "machineAddress": "172.17.0.10",
+        "timestamp": "2018-03-15T14:35:01.957697"
+      }
+    ],
+    "version": "2.1.0",
+    "generator": "eprints"
+  },
+  "messageBody": {
+    "objectUuid": "7dd13dd8-116f-47ae-8ca2-13f985d96284",
+    "objectTitle": "Word disco",
+    "objectPersonRole": [
+      {
+        "person": {
+          "personGivenName": "Cockburn, Ken"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Tullett, Barrie"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Flatman, Lee"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Forrest, Ryan"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Favell, Megan"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Godber, Ashley"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Humphries, Holly"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Jepson, Joshua"
+        },
+        "role": 1
+      },
+      {
+        "person": {
+          "personGivenName": "Gillott, Ashley"
+        },
+        "role": 1
+      }
+    ],
+    "objectDescription": "Artists&#39; Book (collaboration with Graphic Design Students at the University of Lincoln), edited by Ken Cockburn.\r\n\r\nBook was reviewed on the Eye Magazine blog, as part of their &#39;Books Received&#39; feature.",
+    "objectDate": [
+      {
+        "dateValue": "2016-02-01T00:00:00",
+        "dateType": 1
+      }
+    ],
+    "objectCategory": [
+      "W213 Visual Communication",
+      "W210 Graphic Design",
+      "W211 Typography"
+    ],
+    "objectIdentifier": [
+      {
+        "identifierValue": "string",
+        "identifierType": 1,
+        "relationType": 1
+      }
+    ],
+    "objectFile": [
+      {
+        "fileUuid": "24856867-ef63-4ec8-ae20-c5a47cff23f5",
+        "fileIdentifier": "30338/1/WordDisco.jpg",
+        "fileName": "WordDisco.jpg",
+        "fileSize": 211745,
+        "fileChecksum": [
+          {
+            "checksumUuid": "9eb31c0c-619a-43e4-99a0-05622cf35dd5",
+            "checksumType": 1,
+            "checksumValue": "16732689251327946afccdc1eb4b954a"
+          }
+        ],
+        "fileStorageLocation": "https://eprints-adaptor-133-dev.s3.amazonaws.com/30338/1/WordDisco.jpg"
+      }
+    ]
+  }
+}
