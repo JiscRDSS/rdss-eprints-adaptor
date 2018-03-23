@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+   <responseDate>2004-02-17T13:44:55Z</responseDate>
+   <request metadataPrefix="oai_dc" verb="ListRecords" from="2004-01-01">http://dspace.ubib.eur.nl/oai/</request>
+   <ListRecords>
+      <record>
+         <header>
+            <identifier>hdl:1765/1163</identifier>
+            <datestamp>2004-02-16T14:10:55Z</datestamp>
+            <setSpec>1:1</setSpec>
+         </header>
+         <metadata>
+            <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+               <dc:creator>Pau, L-F</dc:creator>
+               <dc:contributor>Pau, L-F</dc:contributor>
+               <dc:date>2004-02-16T13:51:07Z</dc:date>
+               <dc:date>2004-02-16T13:51:07Z</dc:date>
+               <dc:date>January 2004</dc:date>
+               <dc:identifier>http://hdl.handle.net/1765/1163</dc:identifier>
+               <dc:description>This short paper addresses the strategic challenges of deposit banks, and payment clearinghouses, posed by the growing role of mobile operators as collectors and payment agents of flow of cash for themselves and third parties. Through analysis and data analysis from selected operators , it is shown that mobile operators achieve as money flow handlers levels of efficiency , profitability ,and risk control comparable with deposit banks – Furthermore , the payment infrastructures deployed by both are found to be quite similar , and  are analyzed in relation to  strategic challenges and opportunities This paves the way to either mobile operators taking a bigger role ,or for banks to tie up such operators to them even more tightly ,or for alliances/mergers to take place ,all these options being subject to regulatory evolution as analyzed as well . The reader should acknowledge that  there is no emphasis on specific  Mobile banking (M-Banking) technologies (security, terminals, application software) , nor on related market forces from the user demand point of view.</dc:description>
+               <dc:description>This short paper addresses the strategic challenges of deposit banks, and payment clearinghouses, posed by the growing role of mobile operators as collectors and payment agents of flow of cash for themselves and third parties. Through analysis and data analysis from selected operators , it is shown that mobile operators achieve as money flow handlers levels of efficiency , profitability ,and risk control comparable with deposit banks – Furthermore , the payment infrastructures deployed by both are found to be quite similar , and  are analyzed in relation to  strategic challenges and opportunities This paves the way to either mobile operators taking a bigger role ,or for banks to tie up such operators to them even more tightly ,or for alliances/mergers to take place ,all these options being subject to regulatory evolution as analyzed as well . The reader should acknowledge that  there is no emphasis on specific  Mobile banking (M-Banking) technologies (security, terminals, application software) , nor on related market forces from the user demand point of view.</dc:description>
+               <dc:language>en_US</dc:language>
+               <dc:relation>ERS;ERS-2004-015-LIS</dc:relation>
+               <dc:relation>January 2004</dc:relation>
+               <dc:subject>mobile networks</dc:subject>
+               <dc:subject>banking</dc:subject>
+               <dc:subject>transaction systems</dc:subject>
+               <dc:subject>operational cash flow</dc:subject>
+               <dc:subject>regulations</dc:subject>
+               <dc:subject>industry structure</dc:subject>
+               <dc:subject>5001-6182;5201-5982;HE 9713+;HD9696.B36+</dc:subject>
+               <dc:title>Mobile operators as banks or vice-versa? and: the challenges of Mobile channels for banks</dc:title>
+               <dc:type>Working Paper</dc:type>
+               <dc:subject>M;E 44;L 96</dc:subject>
+               <dc:subject>85A;55 D;240 W;180 A</dc:subject>
+               <dc:subject>85.00;05.42;83.44</dc:subject>
+               <dc:subject>bedrijfskunde;bedrijfseconomie;
+draadloze communicatie;
+financiële instellingen;mobiele communicatie; elektronisch betalingsverkeer</dc:subject>
+               <dc:format>application/pdf https://ep.eur.nl/retrieve/2570/ERS 2004 015 LIS.pdf</dc:format>
+            </oai_dc:dc>
+         </metadata>
+      </record>
+   </ListRecords>
+</OAI-PMH>
