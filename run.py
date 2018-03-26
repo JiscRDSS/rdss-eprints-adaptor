@@ -32,12 +32,18 @@ def main():
     settings = _get_settings()
 
     # Initialise the various clients, generator, etc.
-    _initialise_download_client()
-    _initialise_dynamodb_client(settings)
-    _initialise_eprints_client(settings)
-    _initialise_kinesis_client(settings)
-    _initialise_message_generator()
-    _initialise_s3_client(settings)
+    global download_client
+    download_client = _initialise_download_client()
+    global dynamodb_client
+    dynamodb_client = _initialise_dynamodb_client(settings)
+    global eprints_client
+    eprints_client = _initialise_eprints_client(settings)
+    global kinesis_client
+    kinesis_client = _initialise_kinesis_client(settings)
+    global message_generator
+    message_generator = _initialise_message_generator()
+    global s3_client
+    s3_client = _initialise_s3_client(settings)
 
     # Query DynamoDB for the high watermark. If it exists, use that, otherwise this is probably a
     # "first run", so set the watermark to now.
@@ -57,36 +63,30 @@ def main():
 
 
 def _initialise_download_client():
-    global download_client
-    download_client = DownloadClient()
+    return DownloadClient()
 
 
 def _initialise_dynamodb_client(settings):
-    global dynamodb_client
-    dynamodb_client = DynamoDBClient(
+    return DynamoDBClient(
         settings['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'],
         settings['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME']
     )
 
 
 def _initialise_eprints_client(settings):
-    global eprints_client
-    eprints_client = EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
+    return EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
 
 
 def _initialise_kinesis_client(settings):
-    global kinesis_client
-    kinesis_client = KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
+    return KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
 
 
 def _initialise_message_generator():
-    global message_generator
-    message_generator = MessageGenerator()
+    return MessageGenerator()
 
 
 def _initialise_s3_client(settings):
-    global s3_client
-    s3_client = S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
+    return S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
 
 
 def _process_record(record):

@@ -92,10 +92,13 @@ def _build_test_record():
 
 
 def _build_test_s3_objects():
-    return [{
-        'file_name': 'file.dat',
-        'file_path': 'download/file.dat',
-        'file_size': 17280,
-        'file_checksum': '0c9a2690b41be2660db2aadad13dbf05',
-        'download_url': 'https://rdss-prints-adaptor-test-bucket.s3.amazonaws.com/download/file.dat'
-    }]
+    return [
+        {
+            'file_name': 'file.dat',
+            'file_path': 'download/file.dat',
+            'file_size': 17280,
+            'file_checksum': '0c9a2690b41be2660db2aadad13dbf05',
+            'download_url': 'https://rdss-prints-adaptor-test-bucket.s3.amazonaws.com/download/fil'
+                            'e.dat'
+        }
+    ]

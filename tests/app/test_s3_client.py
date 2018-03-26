@@ -16,7 +16,7 @@ def test_push_to_bucket():
     # Push the test file to the mock S3 bucket, using the fake URL
     object_metadata = s3_client.push_to_bucket(
         'http://eprints.test/download/file.dat',
-        'tests/data/smiling.png'
+        'tests/app/data/smiling.png'
     )
     assert object_metadata is not None
     assert len(object_metadata) == 5

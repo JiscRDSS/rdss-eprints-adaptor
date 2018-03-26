@@ -11,7 +11,7 @@ def test_fetch_records_from(mock_urlopen):
     eprints_client = EPrintsClient('http://eprints.test/cgi/oai2')
 
     # Get a handle on the string of the test XML
-    xml_str = _get_xml_file('tests/data/eprints-response.xml')
+    xml_str = _get_xml_file('tests/app/data/eprints-response.xml')
 
     # Create a mock response to urlib2's urlopen call
     mock_urlopen.return_value = MockResponse(xml_str, 200, 'OK')

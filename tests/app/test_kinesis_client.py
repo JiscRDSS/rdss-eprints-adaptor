@@ -52,4 +52,4 @@ def test_put_message_on_queue():
 
 
 def _get_test_message():
-    return json.load(open('tests/data/rdss-message.json'))
+    return json.load(open('tests/app/data/rdss-message.json'))

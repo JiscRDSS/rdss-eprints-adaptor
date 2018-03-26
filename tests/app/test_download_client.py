@@ -13,7 +13,7 @@ def test_download_file_success(*args):
     download_client = DownloadClient()
 
     # Set up the mock response
-    response_data = _get_file_bytes('tests/data/smiling.png')
+    response_data = _get_file_bytes('tests/app/data/smiling.png')
     requests_mocker.get('http://eprints.test/download/file.dat', content=response_data)
 
     # Attempt to download the file
