@@ -51,7 +51,7 @@ def test_generate_metadata_create(*args):
 
     # Validate the objectPersonRole is present and in the correct format
     assert message_json['messageBody']['objectPersonRole'][0]['person'][
-               'personGivenName'] == 'Test creator'
+        'personGivenName'] == 'Test creator'
 
     # Validate the objectDate is present and in the correct format
     assert parser.parse(message_json['messageBody']['objectDate'][0]['dateValue'])
@@ -68,10 +68,10 @@ def test_generate_metadata_create(*args):
         message_json['messageBody']['objectFile'][0]['fileChecksum'][0]['checksumUuid']
     )
     assert message_json['messageBody']['objectFile'][0]['fileChecksum'][0][
-               'checksumValue'] == '0c9a2690b41be2660db2aadad13dbf05'
+        'checksumValue'] == '0c9a2690b41be2660db2aadad13dbf05'
     assert message_json['messageBody']['objectFile'][0][
-               'fileStorageLocation'] == 'https://rdss-prints-adaptor-test-bucket.s3.amazonaws.co' \
-                                         'm/download/file.dat'
+        'fileStorageLocation'] == 'https://rdss-prints-adaptor-test-bucket.s3.amazonaws.co' \
+        'm/download/file.dat'
 
 
 def _build_test_record():
