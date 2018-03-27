@@ -24,16 +24,76 @@ def test_main(_initialise_s3_client, _initialise_message_generator, _initialise_
     # Initialise the test environment variables
     _initialise_env_variables()
 
-    # Mock out the various clients
-    _initialise_download_client.return_value = _mock_download_client()
-    _initialise_dynamodb_client.return_value = _mock_dynamodb_client()
-    _initialise_eprints_client.return_value = _mock_eprints_client()
-    _initialise_kinesis_client.return_value = _mock_kinesis_client()
-    _initialise_message_generator.return_value = _mock_message_generator()
-    _initialise_s3_client.return_value = _mock_s3_client()
+    # Mock out the download client
+    mock_download_client = _mock_download_client()
+    _initialise_download_client.return_value = mock_download_client
+
+    # Mock out the DynamoDB client
+    mock_dynamodb_client = _mock_dynamodb_client()
+    _initialise_dynamodb_client.return_value = mock_dynamodb_client
+
+    # Mock out the EPrints client
+    mock_eprints_client = _mock_eprints_client()
+    _initialise_eprints_client.return_value = mock_eprints_client
+
+    # Mock out the Kinesis client
+    mock_kinesis_client = _mock_kinesis_client()
+    _initialise_kinesis_client.return_value = mock_kinesis_client
+
+    # Mock out the message generator
+    mock_message_generator = _mock_message_generator()
+    _initialise_message_generator.return_value = mock_message_generator
+
+    # Mock out the S3 client
+    mock_s3_client = _mock_s3_client()
+    _initialise_s3_client.return_value = mock_s3_client
 
     # Execute the main function
     run.main()
+
+    # Validate that the appropriate calls were made
+    mock_dynamodb_client.fetch_high_watermark.assert_called_once_with()
+    mock_eprints_client.fetch_records_from.assert_called_once_with('1970-01-01T00:00:00')
+    mock_dynamodb_client.fetch_processed_status.assert_called_once_with('test-identifier')
+    mock_download_client.download_file.assert_called_once_with(
+        'http://eprints.test/download/file.dat'
+    )
+    mock_s3_client.push_to_bucket.assert_called_once_with(
+        'http://eprints.test/download/file.dat',
+        '/path/to/file.dat'
+    )
+    mock_message_generator.generate_metadata_create.assert_called_once_with(
+        {
+            'header': {
+                'identifier': 'test-identifier',
+                'datestamp': parser.parse('2004-02-16T14:10:55')
+            },
+            'metadata': {
+                'creator': ['Test Creator'],
+                'contributor': ['Test Contributor'],
+                'date': ['2004-02-16T13:51:07Z'],
+                'identifier': ['http://eprints.test/download/file.dat'],
+                'description': ['Test Description'],
+                'language': ['en_GB'],
+                'subject': ['Test Subject'],
+                'title': ['Test Title'],
+                'type': ['Test Type'],
+                'format': ['Test Format']
+            }
+        },
+        [{
+            'file_name': 'file.dat',
+            'file_path': 'download/file.dat',
+            'file_size': 17280,
+            'file_checksum': '0c9a2690b41be2660db2aadad13dbf05',
+            'download_url': 'https://rdss-prints-adaptor-test-bucket.s3.amazonaws.com/download/fil'
+                            'e.dat'
+        }]
+    )
+    assert mock_kinesis_client.put_message_on_queue.call_count == 2
+    mock_dynamodb_client.update_high_watermark.assert_called_once_with(
+        parser.parse('2004-02-16T14:10:55')
+    )
 
 
 def _initialise_env_variables():
@@ -72,16 +132,16 @@ def _mock_eprints_client():
                     'datestamp': parser.parse('2004-02-16T14:10:55')
                 },
                 'metadata': {
-                    'creator': 'Test Creator',
-                    'contributor': 'Test Contributor',
-                    'date': '2004-02-16T13:51:07Z',
-                    'identifier': 'http://eprints.test/download/file.dat',
-                    'description': 'Test Description',
-                    'language': 'en_US',
-                    'subject': 'Test Subject',
-                    'title': 'Test Title',
-                    'type': 'Test Type',
-                    'format': 'Test Format'
+                    'creator': ['Test Creator'],
+                    'contributor': ['Test Contributor'],
+                    'date': ['2004-02-16T13:51:07Z'],
+                    'identifier': ['http://eprints.test/download/file.dat'],
+                    'description': ['Test Description'],
+                    'language': ['en_GB'],
+                    'subject': ['Test Subject'],
+                    'title': ['Test Title'],
+                    'type': ['Test Type'],
+                    'format': ['Test Format']
                 }
             }
         ]
@@ -99,7 +159,7 @@ def _mock_kinesis_client():
 def _mock_message_generator():
     mock_message_generator = MessageGenerator()
     mock_message_generator.generate_metadata_create = MagicMock(
-        return_value=json.load(open('tests/app/data/rdss-message.json'))
+        return_value=json.dumps(json.load(open('tests/app/data/rdss-message.json')))
     )
     return mock_message_generator
 

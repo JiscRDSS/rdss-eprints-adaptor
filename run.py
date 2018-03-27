@@ -157,7 +157,10 @@ def _push_files_to_s3(record):
                 file_locations.append(
                     s3_client.push_to_bucket(identifier, file_path)
                 )
-                os.remove(file_path)
+                try:
+                    os.remove(file_path)
+                except FileNotFoundError:
+                    logging.warning('An error occurred removing file [%s]', file_path)
             else:
                 logging.warning('Unable to download EPrints file [%s], skipping file', identifier)
     return file_locations
