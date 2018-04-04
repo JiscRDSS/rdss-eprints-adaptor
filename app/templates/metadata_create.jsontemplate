@@ -41,8 +41,8 @@
             "organisationUnitUuid": "{{ objectPersonRole.person.personOrganisationUnit.organisationUnitUuid }}",
             "organisationUnitName": "not present",
             "organisation": {
-              "organisationJiscId": 0,
-              "organisationName": "not present",
+              "organisationJiscId": {{ objectPersonRole.person.personOrganisationUnit.organisation.organisationJiscId }},
+              "organisationName": "{{ objectPersonRole.person.personOrganisationUnit.organisation.organisationName|e }}",
               "organisationType": 11,
               "organisationAddress": "not present"
             }
@@ -109,7 +109,7 @@
       {% for objectOrganisationRole in messageBody.objectOrganisationRole %}
       {
         "organisation": {
-          "organisationJiscId": 0,
+          "organisationJiscId": {{ objectOrganisationRole.organisation.organisationJiscId }},
           "organisationName": "{{ objectOrganisationRole.organisation.organisationName|e }}",
           "organisationType": 11,
           "organisationAddress": "not present"

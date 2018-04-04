@@ -9,7 +9,9 @@ from dateutil import parser
 
 class MessageGenerator(object):
 
-    def __init__(self):
+    def __init__(self, jisc_id, organisation_name):
+        self.jisc_id = jisc_id
+        self.organisation_name = organisation_name
         self.env = self._initialise_environment()
         self.now = datetime.now().isoformat()
 
@@ -89,7 +91,11 @@ class MessageGenerator(object):
                     'personUuid': uuid.uuid4(),
                     'personGivenName': creator,
                     'personOrganisationUnit': {
-                        'organisationUnitUuid': uuid.uuid4()
+                        'organisationUnitUuid': uuid.uuid4(),
+                        'organisation': {
+                            'organisationJiscId': self.jisc_id,
+                            'organisationName': self.organisation_name
+                        }
                     }
                 },
                 'role': 21
@@ -100,7 +106,11 @@ class MessageGenerator(object):
                     'personUuid': uuid.uuid4(),
                     'personGivenName': contributor,
                     'personOrganisationUnit': {
-                        'organisationUnitUuid': uuid.uuid4()
+                        'organisationUnitUuid': uuid.uuid4(),
+                        'organisation': {
+                            'organisationJiscId': self.jisc_id,
+                            'organisationName': self.organisation_name
+                        }
                     }
                 },
                 'role': 21
@@ -172,6 +182,7 @@ class MessageGenerator(object):
         for publisher in record['metadata']['publisher']:
             object_organisation_roles.append({
                 'organisation': {
+                    'organisationJiscId': self.jisc_id,
                     'organisationName': publisher
                 },
                 'role': 5

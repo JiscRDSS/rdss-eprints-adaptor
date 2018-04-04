@@ -97,6 +97,8 @@ def test_main(_initialise_s3_client, _initialise_message_generator, _initialise_
 
 
 def _initialise_env_variables():
+    os.environ['EPRINTS_JISC_ID'] = '12345'
+    os.environ['EPRINTS_ORGANISATION_NAME'] = 'Test Organisation'
     os.environ['EPRINTS_EPRINTS_URL'] = 'http://eprints.test/cgi/oai2'
     os.environ['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'] = 'rdss-eprints-adaptor-watermark-test'
     os.environ['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME'] = 'rdss-eprints-adaptor-processed-test'
@@ -157,7 +159,7 @@ def _mock_kinesis_client():
 
 
 def _mock_message_generator():
-    mock_message_generator = MessageGenerator()
+    mock_message_generator = MessageGenerator(12345, 'Test Organisation')
     mock_message_generator.generate_metadata_create = MagicMock(
         return_value=json.dumps(json.load(open('tests/app/data/rdss-message.json')))
     )

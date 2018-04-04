@@ -41,7 +41,7 @@ def main():
     global kinesis_client
     kinesis_client = _initialise_kinesis_client(settings)
     global message_generator
-    message_generator = _initialise_message_generator()
+    message_generator = _initialise_message_generator(settings)
     global s3_client
     s3_client = _initialise_s3_client(settings)
 
@@ -81,8 +81,8 @@ def _initialise_kinesis_client(settings):
     return KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
 
 
-def _initialise_message_generator():
-    return MessageGenerator()
+def _initialise_message_generator(settings):
+    return MessageGenerator(settings['EPRINTS_JISC_ID'], settings['EPRINTS_ORGANISATION_NAME'])
 
 
 def _initialise_s3_client(settings):
@@ -190,6 +190,8 @@ def _parse_env_vars(env_var_names):
 
 def _get_settings():
     return _parse_env_vars((
+        'EPRINTS_JISC_ID',
+        'EPRINTS_ORGANISATION_NAME',
         'EPRINTS_EPRINTS_URL',
         'EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME',
         'EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME',

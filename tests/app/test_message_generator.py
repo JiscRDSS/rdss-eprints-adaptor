@@ -23,7 +23,7 @@ def test_generate_metadata_create(*args):
     )
 
     # Create the message generator client we'll be testing against
-    message_generator = MessageGenerator()
+    message_generator = MessageGenerator(12345, 'Test Organisation')
 
     # Generate the message using the dummy values
     test_record = _build_test_record()
