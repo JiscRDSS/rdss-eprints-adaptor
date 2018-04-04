@@ -6,6 +6,11 @@
     "messageTimings": {
       "publishedTimestamp": "{{ messageHeader.messageTimings.publishedTimestamp }}"
     },
+    "messageSequence": {
+      "sequence": "{{ messageHeader.messageSequence.sequence }}",
+      "position": 1,
+      "total": 1
+    },
     "messageHistory": [
       {
         "machineId": "rdss-eprints-adaptor",
@@ -13,7 +18,7 @@
         "timestamp": "{{ messageHeader.messageHistory.timestamp }}"
       }
     ],
-    "version": "2.1.0",
+    "version": "3.0.0",
     "generator": "eprints"
   },
   "messageBody": {
@@ -21,39 +26,104 @@
     "objectTitle": "{{ messageBody.objectTitle|e }}",
     "objectPersonRole": [
       {% for objectPersonRole in messageBody.objectPersonRole %}
-        {
-          "person": {
-            "personGivenName": "{{ objectPersonRole.person.personGivenName }}"
-          },
-        "role": 1
+      {
+        "person": {
+          "personUuid": "{{ objectPersonRole.person.personUuid }}",
+          "personIdentifier": [
+            {
+              "personIdentifierValue": "not present",
+              "personIdentifierType": 2
+            }
+          ],
+          "personGivenNames": "{{ objectPersonRole.person.personGivenName|e }}",
+          "personFamilyNames": "not present",
+          "personOrganisationUnit": {
+            "organisationUnitUuid": "{{ objectPersonRole.person.personOrganisationUnit.organisationUnitUuid }}",
+            "organisationUnitName": "not present",
+            "organisation": {
+              "organisationJiscId": 0,
+              "organisationName": "not present",
+              "organisationType": 11,
+              "organisationAddress": "not present"
+            }
+          }
+        },
+        "role": {{ objectPersonRole.role }}
       }{% if not loop.last %},{% endif %}
       {% endfor %}
     ],
     "objectDescription": "{{ messageBody.objectDescription|e }}",
+    "objectRights": {
+      "rightsStatement": [
+        "{{ messageBody.objectRights.rightsStatement|e }}"
+      ],
+      "licence": [
+        {
+          "licenceIdentifier": "not present"
+        }
+      ],
+      "access": [
+        {
+          "accessType": 1
+        }
+      ]
+    },
     "objectDate": [
       {
         "dateValue": "{{ messageBody.objectDate.dateValue }}",
-        "dateType": 1
+        "dateType": {{ messageBody.objectDate.dateType }}
       }
+    ],
+    "objectKeywords": [
+      {% for objectKeywords in messageBody.objectKeywords %}
+      "{{ objectKeywords|e }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
     ],
     "objectCategory": [
       {% for objectCategory in messageBody.objectCategory %}
-      "{{ objectCategory }}"{% if not loop.last %},{% endif %}
+      "{{ objectCategory|e }}"{% if not loop.last %},{% endif %}
       {% endfor %}
     ],
+    "objectResourceType": 25,
+    "objectValue": 1,
     "objectIdentifier": [
+      {% for objectIdentifier in messageBody.objectIdentifier %}
       {
-        "identifierValue": "string",
-        "identifierType": 1,
-        "relationType": 1
-      }
+        "identifierValue": "{{ objectIdentifier.identifierValue|e }}",
+        "identifierType": {{ objectIdentifier.identifierType }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectRelatedIdentifier": [
+      {% for objectRelatedIdentifier in messageBody.objectRelatedIdentifier %}
+      {
+        "identifier": {
+          "identifierValue": "{{ objectRelatedIdentifier.identifier.identifierValue|e }}",
+          "identifierType": {{ objectRelatedIdentifier.identifier.identifierType }}
+        },
+        "relationType": {{ objectRelatedIdentifier.relationType }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectOrganisationRole": [
+      {% for objectOrganisationRole in messageBody.objectOrganisationRole %}
+      {
+        "organisation": {
+          "organisationJiscId": 0,
+          "organisationName": "{{ objectOrganisationRole.organisation.organisationName|e }}",
+          "organisationType": 11,
+          "organisationAddress": "not present"
+        },
+        "role": {{ objectOrganisationRole.role }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
     ],
     "objectFile": [
       {% for objectFile in messageBody.objectFile %}
       {
         "fileUuid": "{{ objectFile.fileUuid }}",
-        "fileIdentifier": "{{ objectFile.fileIdentifier }}",
-        "fileName": "{{ objectFile.fileName }}",
+        "fileIdentifier": "{{ objectFile.fileIdentifier|e }}",
+        "fileName": "{{ objectFile.fileName|e }}",
         "fileSize": {{ objectFile.fileSize }},
         "fileChecksum": [
           {
@@ -62,7 +132,26 @@
             "checksumValue": "{{ objectFile.fileChecksum.checksumValue }}"
           }
         ],
-        "fileStorageLocation": "{{ objectFile.fileStorageLocation }}"
+        "fileCompositionLevel": "not present",
+        "fileDateModified": [
+          "1970-01-01T00:00:00"
+        ],
+        "fileUse": 1,
+        "filePreservationEvent": [
+          {
+            "preservationEventValue": "not present",
+            "preservationEventType": 3
+          }
+        ],
+        "fileUploadStatus": 2,
+        "fileStorageStatus": 1,
+        "fileStorageLocation": "{{ objectFile.fileStorageLocation|e }}",
+        "fileStoragePlatform": {
+          "storagePlatformUuid": "{{ objectFile.fileStoragePlatform.storagePlatformUuid }}",
+          "storagePlatformName": "AWS",
+          "storagePlatformType": 1,
+          "storagePlatformCost": "not present"
+        }
       }{% if not loop.last %},{% endif %}
       {% endfor %}
     ]
