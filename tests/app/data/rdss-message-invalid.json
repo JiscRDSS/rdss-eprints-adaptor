@@ -185,9 +185,7 @@
         "fileUploadStatus": 1,
         "fileStorageStatus": 1,
         "fileLastDownloaded": "2002-10-02T10:00:00-05:00",
-        "fileTechnicalAttributes": [
-          "string"
-        ],
+        "fileTechnicalAttributes": "string",
         "fileStorageLocation": "https://tools.ietf.org/html/rfc3986",
         "fileStoragePlatform": {
           "storagePlatformUuid": "f2939501-2b2d-4e5c-9197-0daa57ccb621",

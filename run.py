@@ -9,6 +9,7 @@ from app import DownloadClient
 from app import DynamoDBClient
 from app import KinesisClient
 from app import MessageGenerator
+from app import MessageValidator
 from app import PoisonPill
 from app import S3Client
 from datetime import datetime
@@ -24,6 +25,7 @@ dynamodb_client = None
 eprints_client = None
 kinesis_client = None
 message_generator = None
+message_validator = None
 s3_client = None
 
 
@@ -42,6 +44,8 @@ def main():
     kinesis_client = _initialise_kinesis_client(settings)
     global message_generator
     message_generator = _initialise_message_generator(settings)
+    global message_validator
+    message_validator = _initialise_message_validator(settings)
     global s3_client
     s3_client = _initialise_s3_client(settings)
 
@@ -78,11 +82,18 @@ def _initialise_eprints_client(settings):
 
 
 def _initialise_kinesis_client(settings):
-    return KinesisClient(settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'])
+    return KinesisClient(
+        settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'],
+        settings['EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME']
+    )
 
 
 def _initialise_message_generator(settings):
     return MessageGenerator(settings['EPRINTS_JISC_ID'], settings['EPRINTS_ORGANISATION_NAME'])
+
+
+def _initialise_message_validator(settings):
+    return MessageValidator(settings['EPRINTS_API_SPECIFICATION_VERSION'])
 
 
 def _initialise_s3_client(settings):
@@ -118,8 +129,11 @@ def _process_record(record):
             # Generate the RDSS compliant message from the EPrints record.
             message = message_generator.generate_metadata_create(record, s3_objects)
 
-            # Belts and braces check to make sure the JSON is valid not corrupted.
-            message = _format_message(message)
+            # Convert the message into a JSON payload and back again
+            message = json.dumps(json.loads(message, strict=False))
+
+            # Belts and braces check to make sure the message is valid
+            message_validator.validate_message(message)
 
             # Put the RDSS message onto the message queue.
             kinesis_client.put_message_on_queue(message)
@@ -129,6 +143,7 @@ def _process_record(record):
         except Exception as e:
             logging.exception('An error occurred processing EPrints record [%s]', record)
             status, reason = 'Failure', str(e)
+            kinesis_client.put_invalid_message_on_queue(message)
 
         # Update the DynamoDB table with the status of the processing of this record.
         dynamodb_client.update_processed_record(
@@ -166,16 +181,6 @@ def _push_files_to_s3(record):
     return file_locations
 
 
-def _format_message(message):
-    try:
-        # Convert the JSON string into a JSON payload, then back again. Really just validates that
-        # we're dealing with valid JSON.
-        json_payload = json.loads(message, strict=False)
-        return json.dumps(json_payload)
-    except Exception:
-        logging.exception('An error occurred decoding the message [%s]', message)
-
-
 def _parse_env_vars(env_var_names):
     env_vars = {name: os.environ.get(name) for name in env_var_names}
     if not all(env_vars.values()):
@@ -196,7 +201,9 @@ def _get_settings():
         'EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME',
         'EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME',
         'EPRINTS_S3_BUCKET_NAME',
-        'EPRINTS_OUTPUT_KINESIS_STREAM_NAME'
+        'EPRINTS_OUTPUT_KINESIS_STREAM_NAME',
+        'EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME',
+        'EPRINTS_API_SPECIFICATION_VERSION'
     ))
 
 
@@ -204,6 +211,8 @@ def _shutdown():
     logging.info('Shutting adaptor down...')
     if kinesis_client is not None:
         kinesis_client.put_message_on_queue(PoisonPill)
+    if message_validator is not None:
+        message_validator.shutdown()
 
 
 if __name__ == '__main__':
