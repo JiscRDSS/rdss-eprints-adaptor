@@ -67,7 +67,7 @@ class KinesisClient(object):
 
                 # If the worker has been poisoned, then it's time to shut down. First step: break
                 # out of this loop.
-                if queue_item == PoisonPill:
+                if queue_item['message'] == PoisonPill:
                     logging.info('Queue worker has been poisoned, breaking out of the loop...')
                     break
                 else:
