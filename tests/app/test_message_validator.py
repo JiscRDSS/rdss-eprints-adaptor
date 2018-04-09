@@ -16,8 +16,8 @@ def test_validate_message_valid():
 
 
 def test_validate_message_invalid():
+    # Validate that this call to raises a ValidationError
     with pytest.raises(ValidationError):
-
         # Create the message validator we'll be testing against
         message_validator = MessageValidator('3.0.1')
 

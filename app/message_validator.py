@@ -3,9 +3,10 @@ import logging
 import os
 
 from app import DownloadClient
-from jsonschema import validate, FormatChecker, RefResolver, ValidationError
+from jsonschema import validate, FormatChecker, RefResolver
 
-MODEL_SCHEMA_BASE_URL = 'https://raw.githubusercontent.com/JiscRDSS/rdss-message-api-specification/{api_version}/schemas/{schema_document}'
+MODEL_SCHEMA_BASE_URL = 'https://raw.githubusercontent.com/JiscRDSS/rdss-message-api-specificatio' \
+                        'n/{api_version}/schemas/{schema_document}'
 MODEL_SCHEMA_DOCUMENTS = [
     {
         'file_name': 'enumeration.json',
@@ -32,7 +33,8 @@ MODEL_SCHEMA_DOCUMENTS = [
         'schema_id': 'https://www.jisc.ac.uk/rdss/schema/types.json/#'
     }
 ]
-MESSAGE_SCHEMA_URL = 'https://raw.githubusercontent.com/JiscRDSS/rdss-message-api-specification/{api_version}/messages/message_schema.json'
+MESSAGE_SCHEMA_URL = 'https://raw.githubusercontent.com/JiscRDSS/rdss-message-api-specification/{' \
+                     'api_version}/messages/message_schema.json'
 
 
 class MessageValidator(object):
