@@ -10,8 +10,9 @@ from threading import Thread
 
 class KinesisClient(object):
 
-    def __init__(self, stream_name):
+    def __init__(self, stream_name, invalid_stream_name):
         self.stream_name = stream_name
+        self.invalid_stream_name = invalid_stream_name
         self.message_queue = Queue()
         self.client = self._initialise_client()
         self.queue_worker_thread = self._initialise_queue_worker()
@@ -35,7 +36,18 @@ class KinesisClient(object):
     def put_message_on_queue(self, message):
         # Append the given message onto the queue.
         logging.info('Adding message [%s] to the queue', message)
-        self.message_queue.put_nowait(message)
+        self.message_queue.put_nowait({
+            'target_stream': self.stream_name,
+            'message': message
+        })
+
+    def put_invalid_message_on_queue(self, message):
+        # Append the given message onto the queue
+        logging.info('Adding invalid message [%s] to the queue', message)
+        self.message_queue.put_nowait({
+            'target_stream': self.invalid_stream_name,
+            'message': message
+        })
 
     def _process_queue(self):
         # Queue processing will run a loop, forever, until the end of time, with 0.5 second
@@ -48,18 +60,18 @@ class KinesisClient(object):
             logging.debug('Sleeping for [0.5] seconds before processing next message on queue')
             time.sleep(0.5)
 
-            # Try and grab a message from the queue, and check if we got something or None.
-            message = self._fetch_message_from_queue()
-            logging.debug('Got message [%s] from queue', message)
-            if message is not None:
+            # Try and grab a queue item from the queue, and check if we got something or None.
+            queue_item = self._fetch_message_from_queue()
+            logging.debug('Got item [%s] from queue', queue_item)
+            if queue_item is not None:
 
                 # If the worker has been poisoned, then it's time to shut down. First step: break
                 # out of this loop.
-                if message == PoisonPill:
+                if queue_item['message'] == PoisonPill:
                     logging.info('Queue worker has been poisoned, breaking out of the loop...')
                     break
                 else:
-                    self._put_message_to_stream(message)
+                    self._put_message_to_stream(queue_item['target_stream'], queue_item['message'])
 
         # Time to die.
         logging.info('All those moments will be lost in time, like tears in rain. Time to die.')
@@ -72,16 +84,16 @@ class KinesisClient(object):
             logging.info('Fetching message from queue ([%s] remaining)', self.message_queue.qsize())
             return self.message_queue.get(False)
 
-    def _put_message_to_stream(self, message):
+    def _put_message_to_stream(self, target_stream, message):
         # Put the message onto the Kinesis Stream, using a random partition key. This should be
         # sufficient to guarantee random shard allocation.
         logging.info(
             'Putting message [%s] onto stream [%s] with random partition key',
             message,
-            self.stream_name
+            target_stream
         )
         response = self.client.put_record(
-            StreamName=self.stream_name,
+            StreamName=target_stream,
             Data=message,
             PartitionKey=str(uuid.uuid4())
         )
@@ -89,7 +101,7 @@ class KinesisClient(object):
             'Put message [%s] onto shard [%s] of stream [%s] with sequence number [%s]',
             message,
             response['ShardId'],
-            self.stream_name,
+            target_stream,
             response['SequenceNumber']
         )
 

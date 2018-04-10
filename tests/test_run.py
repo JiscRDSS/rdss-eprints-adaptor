@@ -7,6 +7,7 @@ from app import DownloadClient
 from app import DynamoDBClient
 from app import KinesisClient
 from app import MessageGenerator
+from app import MessageValidator
 from app import PoisonPill
 from app import S3Client
 from dateutil import parser
@@ -18,9 +19,11 @@ from mock import MagicMock, patch
 @patch('run._initialise_eprints_client')
 @patch('run._initialise_kinesis_client')
 @patch('run._initialise_message_generator')
+@patch('run._initialise_message_validator')
 @patch('run._initialise_s3_client')
-def test_main(_initialise_s3_client, _initialise_message_generator, _initialise_kinesis_client,
-              _initialise_eprints_client, _initialise_dynamodb_client, _initialise_download_client):
+def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_message_generator,
+              _initialise_kinesis_client, _initialise_eprints_client, _initialise_dynamodb_client,
+              _initialise_download_client):
     # Initialise the test environment variables
     _initialise_env_variables()
 
@@ -43,6 +46,10 @@ def test_main(_initialise_s3_client, _initialise_message_generator, _initialise_
     # Mock out the message generator
     mock_message_generator = _mock_message_generator()
     _initialise_message_generator.return_value = mock_message_generator
+
+    # Mock out the message validator
+    mock_message_validator = _mock_message_validator()
+    _initialise_message_validator.return_value = mock_message_validator
 
     # Mock out the S3 client
     mock_s3_client = _mock_s3_client()
@@ -97,11 +104,15 @@ def test_main(_initialise_s3_client, _initialise_message_generator, _initialise_
 
 
 def _initialise_env_variables():
+    os.environ['EPRINTS_JISC_ID'] = '12345'
+    os.environ['EPRINTS_ORGANISATION_NAME'] = 'Test Organisation'
     os.environ['EPRINTS_EPRINTS_URL'] = 'http://eprints.test/cgi/oai2'
     os.environ['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'] = 'rdss-eprints-adaptor-watermark-test'
     os.environ['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME'] = 'rdss-eprints-adaptor-processed-test'
     os.environ['EPRINTS_S3_BUCKET_NAME'] = 'rdss-prints-adaptor-test-bucket'
     os.environ['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'] = 'rdss-eprints-adaptor-test-stream'
+    os.environ['EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME'] = 'rdss-eprints-adaptor-invalid-stream'
+    os.environ['EPRINTS_API_SPECIFICATION_VERSION'] = '3.0.1'
 
 
 def _mock_download_client():
@@ -150,18 +161,30 @@ def _mock_eprints_client():
 
 
 def _mock_kinesis_client():
-    mock_kinesis_client = KinesisClient('rdss-eprints-adaptor-test-stream')
+    mock_kinesis_client = KinesisClient(
+        'rdss-eprints-adaptor-test-stream',
+        'rdss-eprints-adaptor-invalid-stream'
+    )
     mock_kinesis_client.put_message_on_queue(PoisonPill)
     mock_kinesis_client.put_message_on_queue = MagicMock(return_value=None)
+    mock_kinesis_client.put_invalid_message_on_queue = MagicMock(return_value=None)
     return mock_kinesis_client
 
 
 def _mock_message_generator():
-    mock_message_generator = MessageGenerator()
+    mock_message_generator = MessageGenerator(12345, 'Test Organisation')
     mock_message_generator.generate_metadata_create = MagicMock(
         return_value=json.dumps(json.load(open('tests/app/data/rdss-message.json')))
     )
     return mock_message_generator
+
+
+def _mock_message_validator():
+    mock_message_validator = MessageValidator('3.0.1')
+    mock_message_validator._download_model_schemas = MagicMock(return_value=None)
+    mock_message_validator._download_message_schema = MagicMock(return_value=None)
+    mock_message_validator.validate_message = MagicMock(return_value=None)
+    return mock_message_validator
 
 
 def _mock_s3_client():

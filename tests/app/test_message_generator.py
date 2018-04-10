@@ -23,7 +23,7 @@ def test_generate_metadata_create(*args):
     )
 
     # Create the message generator client we'll be testing against
-    message_generator = MessageGenerator()
+    message_generator = MessageGenerator(12345, 'Test Organisation')
 
     # Generate the message using the dummy values
     test_record = _build_test_record()
@@ -51,7 +51,7 @@ def test_generate_metadata_create(*args):
 
     # Validate the objectPersonRole is present and in the correct format
     assert message_json['messageBody']['objectPersonRole'][0]['person'][
-        'personGivenName'] == 'Test creator'
+        'personGivenNames'] == 'Test creator'
 
     # Validate the objectDate is present and in the correct format
     assert parser.parse(message_json['messageBody']['objectDate'][0]['dateValue'])
@@ -83,7 +83,11 @@ def _build_test_record():
         'metadata': {
             'title': ['Test title'],
             'creator': ['Test creator'],
+            'contributor': ['Test contributor'],
             'description': ['Test description'],
+            'relation': ['Test relation'],
+            'rights': ['Test rights'],
+            'publisher': ['Test publisher'],
             'date': ['2018-03-23T09:10:15'],
             'subject': ['Test subject'],
             'identifier': ['http://eprints.test/download/file.dat']

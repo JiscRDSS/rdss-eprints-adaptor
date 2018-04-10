@@ -10,7 +10,10 @@ from moto import mock_kinesis
 @mock_kinesis
 def test_put_message_on_queue():
     # Create the Kinesis client we'll be testing against
-    kinesis_client = KinesisClient('rdss-eprints-adaptor-test-stream')
+    kinesis_client = KinesisClient(
+        'rdss-eprints-adaptor-test-stream',
+        'rdss-eprints-adaptor-invalid-stream'
+    )
 
     # Create a Boto3 Kinesis client we'll use to cretae the stream
     client = boto3.client('kinesis')
