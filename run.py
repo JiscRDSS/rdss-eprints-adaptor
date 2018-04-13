@@ -193,18 +193,6 @@ def _push_files_to_s3(record):
 
 
 def _decorate_message_with_error(message, error_code, error_message):
-    # We need to be able to get the message as a dict
-    if not isinstance(message, dict):
-        try:
-            message = json.loads(message, strict=False)
-        except Exception:
-            logging.warning(
-                'Unable to decorate message [%s] with error code [%s] and message [%s]',
-                message,
-                error_code,
-                error_message
-            )
-
     # Belts and braces - make sure the top level 'messageHeader' exists
     if 'messageHeader' not in message:
         message['messageHeader'] = {}
