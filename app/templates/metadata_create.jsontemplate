@@ -23,7 +23,7 @@
   },
   "messageBody": {
     "objectUuid": "{{ messageBody.objectUuid }}",
-    "objectTitle": "{{ messageBody.objectTitle|e }}",
+    "objectTitle": {{ messageBody.objectTitle|tojson|safe }},
     "objectPersonRole": [
       {% for objectPersonRole in messageBody.objectPersonRole %}
       {
@@ -35,14 +35,14 @@
               "personIdentifierType": 2
             }
           ],
-          "personGivenNames": "{{ objectPersonRole.person.personGivenName|e }}",
+          "personGivenNames": {{ objectPersonRole.person.personGivenName|tojson|safe }},
           "personFamilyNames": "not present",
           "personOrganisationUnit": {
             "organisationUnitUuid": "{{ objectPersonRole.person.personOrganisationUnit.organisationUnitUuid }}",
             "organisationUnitName": "not present",
             "organisation": {
               "organisationJiscId": {{ objectPersonRole.person.personOrganisationUnit.organisation.organisationJiscId }},
-              "organisationName": "{{ objectPersonRole.person.personOrganisationUnit.organisation.organisationName|e }}",
+              "organisationName": {{ objectPersonRole.person.personOrganisationUnit.organisation.organisationName|tojson|safe }},
               "organisationType": 11,
               "organisationAddress": "not present"
             }
@@ -52,10 +52,10 @@
       }{% if not loop.last %},{% endif %}
       {% endfor %}
     ],
-    "objectDescription": "{{ messageBody.objectDescription|e }}",
+    "objectDescription": {{ messageBody.objectDescription|tojson|safe }},
     "objectRights": {
       "rightsStatement": [
-        "{{ messageBody.objectRights.rightsStatement|e }}"
+        {{ messageBody.objectRights.rightsStatement|tojson|safe }}
       ],
       "licence": [
         {
@@ -76,12 +76,12 @@
     ],
     "objectKeywords": [
       {% for objectKeywords in messageBody.objectKeywords %}
-      "{{ objectKeywords|e }}"{% if not loop.last %},{% endif %}
+      {{ objectKeywords|tojson|safe }}{% if not loop.last %},{% endif %}
       {% endfor %}
     ],
     "objectCategory": [
       {% for objectCategory in messageBody.objectCategory %}
-      "{{ objectCategory|e }}"{% if not loop.last %},{% endif %}
+      {{ objectCategory|tojson|safe }}{% if not loop.last %},{% endif %}
       {% endfor %}
     ],
     "objectResourceType": 25,
@@ -89,7 +89,7 @@
     "objectIdentifier": [
       {% for objectIdentifier in messageBody.objectIdentifier %}
       {
-        "identifierValue": "{{ objectIdentifier.identifierValue|e }}",
+        "identifierValue": {{ objectIdentifier.identifierValue|tojson|safe }},
         "identifierType": {{ objectIdentifier.identifierType }}
       }{% if not loop.last %},{% endif %}
       {% endfor %}
@@ -98,7 +98,7 @@
       {% for objectRelatedIdentifier in messageBody.objectRelatedIdentifier %}
       {
         "identifier": {
-          "identifierValue": "{{ objectRelatedIdentifier.identifier.identifierValue|e }}",
+          "identifierValue": {{ objectRelatedIdentifier.identifier.identifierValue|tojson|safe }},
           "identifierType": {{ objectRelatedIdentifier.identifier.identifierType }}
         },
         "relationType": {{ objectRelatedIdentifier.relationType }}
@@ -110,7 +110,7 @@
       {
         "organisation": {
           "organisationJiscId": {{ objectOrganisationRole.organisation.organisationJiscId }},
-          "organisationName": "{{ objectOrganisationRole.organisation.organisationName|e }}",
+          "organisationName": {{ objectOrganisationRole.organisation.organisationName|tojson|safe }},
           "organisationType": 11,
           "organisationAddress": "not present"
         },
@@ -122,8 +122,8 @@
       {% for objectFile in messageBody.objectFile %}
       {
         "fileUuid": "{{ objectFile.fileUuid }}",
-        "fileIdentifier": "{{ objectFile.fileIdentifier|e }}",
-        "fileName": "{{ objectFile.fileName|e }}",
+        "fileIdentifier": {{ objectFile.fileIdentifier|tojson|safe }},
+        "fileName": {{ objectFile.fileName|tojson|safe }},
         "fileSize": {{ objectFile.fileSize }},
         "fileChecksum": [
           {
@@ -145,7 +145,7 @@
         ],
         "fileUploadStatus": 2,
         "fileStorageStatus": 1,
-        "fileStorageLocation": "{{ objectFile.fileStorageLocation|e }}",
+        "fileStorageLocation": {{ objectFile.fileStorageLocation|tojson|safe }},
         "fileStoragePlatform": {
           "storagePlatformUuid": "{{ objectFile.fileStoragePlatform.storagePlatformUuid }}",
           "storagePlatformName": "AWS",

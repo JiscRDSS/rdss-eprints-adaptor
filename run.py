@@ -121,7 +121,7 @@ def _process_record(record):
         return
     else:
         logging.info('Processing EPrints record [%s]', eprints_identifier)
-        message, status, reason = None, 'Success', '-'
+        message, status, reason, err_code = None, 'Success', '-', None
         try:
             # Fetch from EPrints and push the files associated with the record into S3.
             s3_objects = _push_files_to_s3(record)
@@ -129,11 +129,19 @@ def _process_record(record):
             # Generate the RDSS compliant message from the EPrints record.
             message = message_generator.generate_metadata_create(record, s3_objects)
 
-            # Convert the message into a JSON payload and back again
-            message = json.dumps(json.loads(message, strict=False))
+            try:
+                # Convert the message into a JSON payload and back again
+                message = json.dumps(json.loads(message, strict=False))
+            except Exception:
+                err_code = 'GENERR007'
+                raise
 
-            # Belts and braces check to make sure the message is valid
-            message_validator.validate_message(message)
+            try:
+                # Belts and braces check to make sure the message is valid
+                message_validator.validate_message(message)
+            except Exception:
+                err_code = 'GENERR001'
+                raise
 
             # Put the RDSS message onto the message queue.
             kinesis_client.put_message_on_queue(message)
@@ -142,7 +150,10 @@ def _process_record(record):
             dynamodb_client.update_high_watermark(record['header']['datestamp'])
         except Exception as e:
             logging.exception('An error occurred processing EPrints record [%s]', record)
+            if err_code is None:
+                err_code = 'GENERR009'
             status, reason = 'Failure', str(e)
+            message = _decorate_message_with_error(message, err_code, reason)
             kinesis_client.put_invalid_message_on_queue(message)
 
         # Update the DynamoDB table with the status of the processing of this record.
@@ -179,6 +190,30 @@ def _push_files_to_s3(record):
             else:
                 logging.warning('Unable to download EPrints file [%s], skipping file', identifier)
     return file_locations
+
+
+def _decorate_message_with_error(message, error_code, error_message):
+    # We need to be able to get the message as a dict
+    if not isinstance(message, dict):
+        try:
+            message = json.loads(message, strict=False)
+        except Exception:
+            logging.warning(
+                'Unable to decorate message [%s] with error code [%s] and message [%s]',
+                message,
+                error_code,
+                error_message
+            )
+
+    # Belts and braces - make sure the top level 'messageHeader' exists
+    if 'messageHeader' not in message:
+        message['messageHeader'] = {}
+
+    # Add the error code and error message to the message
+    message['messageHeader']['errorCode'] = error_code
+    message['messageHeader']['errorMessage'] = json.dumps(error_message)
+
+    return json.dumps(message)
 
 
 def _parse_env_vars(env_var_names):
