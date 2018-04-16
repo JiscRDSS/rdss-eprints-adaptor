@@ -146,8 +146,6 @@ def _process_record(record):
             # Put the RDSS message onto the message queue.
             kinesis_client.put_message_on_queue(message)
 
-            # Update the high watermark to the datestamp of this EPrints record.
-            dynamodb_client.update_high_watermark(record['header']['datestamp'])
         except Exception as e:
             logging.exception('An error occurred processing EPrints record [%s]', record)
             if err_code is None:
@@ -163,6 +161,9 @@ def _process_record(record):
             status,
             reason
         )
+
+        # Update the high watermark to the datestamp of this EPrints record.
+        dynamodb_client.update_high_watermark(record['header']['datestamp'])
 
 
 def _push_files_to_s3(record):
