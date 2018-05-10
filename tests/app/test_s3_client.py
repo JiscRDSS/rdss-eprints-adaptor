@@ -25,6 +25,6 @@ def test_push_to_bucket():
     assert object_metadata['file_name'] == 'file.dat'
     assert object_metadata['file_path'] == 'download/file.dat'
     assert object_metadata['file_size'] == 17280
-    assert object_metadata['file_checksum'] == '0c9a2690b41be2660db2aadad13dbf05'
+    assert object_metadata['file_checksum'] == 'DJomkLQb4mYNsqra0T2/BQ=='
     assert object_metadata['download_url'] == 'https://rdss-prints-adaptor-test-bucket.s3.' \
                                               'amazonaws.com/download/file.dat'

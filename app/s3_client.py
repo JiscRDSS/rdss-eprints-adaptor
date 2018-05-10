@@ -1,10 +1,8 @@
 import boto3
 import hashlib
+import base64
 import logging
 import ntpath
-import os
-import sys
-import threading
 
 from urllib.parse import urlparse
 
@@ -31,13 +29,16 @@ class S3Client(object):
             self.bucket_name,
             object_key
         )
-        file_size = os.path.getsize(file_path)
+        md5_checksum = self._calculate_file_checksum(file_path)
         with open(file_path, 'rb') as data:
-            self.client.upload_fileobj(
-                data,
-                self.bucket_name,
-                object_key,
-                Callback=ProgressPercentage(file_size)
+            self.client.put_object(
+                Body=data,
+                Bucket=self.bucket_name,
+                Key=object_key,
+                ContentMD5=md5_checksum,
+                Metadata={
+                    'md5chksum': md5_checksum
+                }
             )
         logging.info(
             'Finished pushing file [%s] to S3 Bucket [%s] with key [%s]',
@@ -67,7 +68,7 @@ class S3Client(object):
             'file_name': ntpath.basename(object_key),
             'file_path': object_key,
             'file_size': response['ContentLength'],
-            'file_checksum': self._calculate_file_checksum(file_path),
+            'file_checksum': md5_checksum,
             'download_url': 'https://{}.s3.amazonaws.com/{}'.format(self.bucket_name, object_key)
         }
 
@@ -83,29 +84,9 @@ class S3Client(object):
         # We can query the existing file on disk to calculate the checksum value.
         hash_md5 = hashlib.md5()
         logging.info('Calculating MD5 checksum for file [%s]', file_path)
-        with open(file_path, 'rb') as file:
-            for chunk in iter(lambda: file.read(4096), b''):
+        with open(file_path, 'rb') as file_in:
+            for chunk in iter(lambda: file_in.read(4096), b''):
                 hash_md5.update(chunk)
-        checksum = hash_md5.hexdigest()
+        checksum = base64.b64encode(hash_md5.digest()).decode('utf-8')
         logging.info('Got MD5 checksum value [%s] for file[%s]', checksum, file_path)
         return checksum
-
-
-class ProgressPercentage(object):
-    def __init__(self, object_length):
-        self.object_length = object_length
-        self._seen_so_far = 0
-        self._lock = threading.Lock()
-
-    def __call__(self, bytes_amount):
-        with self._lock:
-            self._seen_so_far += bytes_amount
-            percentage = (self._seen_so_far / self.object_length) * 100
-            sys.stdout.write(
-                '\rProgress: %s / %s  (%.2f%%)\n' % (
-                    self._seen_so_far,
-                    self.object_length,
-                    percentage
-                )
-            )
-            sys.stdout.flush()
