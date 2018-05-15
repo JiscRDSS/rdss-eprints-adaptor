@@ -4,7 +4,7 @@
 
 The RDSS Eprints Adaptor is a per-institutional adaptor for use by institutions that utilise an instance of the [EPrints open access repository](http://www.eprints.org/).
 
-The adaptor will execute periodically, querying the OAI-PMH endpoint endposed by the EPrints instance to retrieve records that have been added to the repository since the creation timestamp of the most recently retrieved record. Once the record is retrieved, its corresponding digital objects are retrieved and stored in an S3 bucket, and its metadata is converted into a format compliant with the Jisc RDSS canonical data model. It is then published into the messaging system, for consumption by downstream systems.
+The adaptor will execute periodically, querying the OAI-PMH endpoint exposed by the EPrints instance to retrieve records that have been added to the repository since the creation timestamp of the most recently retrieved record. Once the record is retrieved, its corresponding digital objects are retrieved and stored in an S3 bucket, and its metadata is converted into a format compliant with the Jisc RDSS canonical data model. It is then published into the messaging system, for consumption by downstream systems.
 
 The EPrints Adaptor is capable of interacting with any OAI-PMH compliant endpoint.
 
@@ -15,9 +15,9 @@ The EPrints Adaptor is capable of interacting with any OAI-PMH compliant endpoin
 
 ## Service Architecture
 
-The adaptor runs as a Docker container which can be configured to point to the EPrints OAI-PMH endpoint. It also requires DynamoDB tables and S3 buckets to operate - all of this infrastructure is created through the accompanying Terraform.
+The adaptor runs as a Docker container which can be configured to point to the EPrints OAI-PMH endpoint. It also requires DynamoDB tables and S3 buckets to operate - all of this infrastructure is created through the [accompanying Terraform](https://github.com/JiscRDSS/rdss-institutional-ecs-clusters/tree/develop/infra-eprints-adaptor/tf).
 
-The following environmental variables are required for the adaptor to run. These are typically provided as paameters to the Docker container:
+The following environmental variables are required for the adaptor to run. These are typically provided as parameters to the Docker container:
 
 * `EPRINTS_JISC_ID`
   * The Jisc ID of the institution that is operating the EPrints instance.
