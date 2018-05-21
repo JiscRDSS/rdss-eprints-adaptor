@@ -56,9 +56,11 @@ def main():
         start_timestamp = datetime.now()
         dynamodb_client.update_high_watermark(start_timestamp)
 
+    flow_limit = int(settings['EPRINTS_FLOW_LIMIT'])
+
     # Query EPrints for all the records since the high watermark, loop and process.
     records = eprints_client.fetch_records_from(start_timestamp)
-    for record in records:
+    for record in records[:flow_limit]:
         logging.info('Processing EPrints record [%s]', record)
         _process_record(record)
 
@@ -239,7 +241,8 @@ def _get_settings():
         'EPRINTS_S3_BUCKET_NAME',
         'EPRINTS_OUTPUT_KINESIS_STREAM_NAME',
         'EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME',
-        'EPRINTS_API_SPECIFICATION_VERSION'
+        'EPRINTS_API_SPECIFICATION_VERSION',
+        'EPRINTS_FLOW_LIMIT'
     ))
 
 

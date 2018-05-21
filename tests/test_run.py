@@ -113,6 +113,7 @@ def _initialise_env_variables():
     os.environ['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'] = 'rdss-eprints-adaptor-test-stream'
     os.environ['EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME'] = 'rdss-eprints-adaptor-invalid-stream'
     os.environ['EPRINTS_API_SPECIFICATION_VERSION'] = '3.0.1'
+    os.environ['EPRINTS_FLOW_LIMIT'] = '1'
 
 
 def _mock_download_client():
