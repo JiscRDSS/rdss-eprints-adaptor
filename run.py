@@ -63,7 +63,7 @@ def main():
     records = eprints_client.fetch_records_from(start_timestamp)
     # Filter out records that have already been successfully processed
     filtered_records = itertools.islice(filter(_record_success_filter, records), flow_limit)
-    
+
     for record in filtered_records:
         logging.info('Processing EPrints record [%s]', record)
         _process_record(record)
@@ -105,8 +105,9 @@ def _initialise_message_validator(settings):
 def _initialise_s3_client(settings):
     return S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
 
+
 def _record_success_filter(record):
-    """ Filters out records that have already been processed successfully. 
+    """ Filters out records that have already been processed successfully.
         """
     eprints_identifier = record['header']['identifier']
     status = dynamodb_client.fetch_processed_status(eprints_identifier)
@@ -117,9 +118,9 @@ def _record_success_filter(record):
     )
     if status == 'Success':
         logging.info(
-                'EPrints record [%s] already successfully processed, skipping',
-                eprints_identifier
-                )
+            'EPrints record [%s] already successfully processed, skipping',
+            eprints_identifier
+        )
         return False
     else:
         return True
