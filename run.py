@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import itertools
 
 from app import EPrintsClient
 from app import DownloadClient
@@ -58,9 +59,12 @@ def main():
 
     flow_limit = int(settings['EPRINTS_FLOW_LIMIT'])
 
-    # Query EPrints for all the records since the high watermark, loop and process.
+    # Query EPrints for all the records since the high watermark.
     records = eprints_client.fetch_records_from(start_timestamp)
-    for record in records[:flow_limit]:
+    # Filter out records that have already been successfully processed
+    filtered_records = itertools.islice(filter(_record_success_filter, records), flow_limit)
+
+    for record in filtered_records:
         logging.info('Processing EPrints record [%s]', record)
         _process_record(record)
 
@@ -102,11 +106,10 @@ def _initialise_s3_client(settings):
     return S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
 
 
-def _process_record(record):
-    # Start by getting a handle on the EPrints identifier.
+def _record_success_filter(record):
+    """ Filters out records that have already been processed successfully.
+        """
     eprints_identifier = record['header']['identifier']
-
-    # A belts and braces check as to whether we've already processed this record
     status = dynamodb_client.fetch_processed_status(eprints_identifier)
     logging.info(
         'Got processed status [%s] for EPrints identifier [%s]',
@@ -114,58 +117,61 @@ def _process_record(record):
         eprints_identifier
     )
     if status == 'Success':
-        # If we've already processed this record, skip over it. This protects against a lost or
-        # corrupt high watermark.
         logging.info(
             'EPrints record [%s] already successfully processed, skipping',
             eprints_identifier
         )
-        return
+        return False
     else:
-        logging.info('Processing EPrints record [%s]', eprints_identifier)
-        message, status, reason, err_code = None, 'Success', '-', None
+        return True
+
+
+def _process_record(record):
+    eprints_identifier = record['header']['identifier']
+    logging.info('Processing EPrints record [%s]', eprints_identifier)
+    message, status, reason, err_code = None, 'Success', '-', None
+    try:
+        # Fetch from EPrints and push the files associated with the record into S3.
+        s3_objects = _push_files_to_s3(record)
+
+        # Generate the RDSS compliant message from the EPrints record.
+        message = message_generator.generate_metadata_create(record, s3_objects)
+
         try:
-            # Fetch from EPrints and push the files associated with the record into S3.
-            s3_objects = _push_files_to_s3(record)
+            # Convert the message into a JSON payload and back again
+            message = json.dumps(json.loads(message, strict=False))
+        except Exception:
+            err_code = 'GENERR007'
+            raise
 
-            # Generate the RDSS compliant message from the EPrints record.
-            message = message_generator.generate_metadata_create(record, s3_objects)
+        try:
+            # Belts and braces check to make sure the message is valid
+            message_validator.validate_message(message)
+        except Exception:
+            err_code = 'GENERR001'
+            raise
 
-            try:
-                # Convert the message into a JSON payload and back again
-                message = json.dumps(json.loads(message, strict=False))
-            except Exception:
-                err_code = 'GENERR007'
-                raise
+        # Put the RDSS message onto the message queue.
+        kinesis_client.put_message_on_queue(message)
 
-            try:
-                # Belts and braces check to make sure the message is valid
-                message_validator.validate_message(message)
-            except Exception:
-                err_code = 'GENERR001'
-                raise
+    except Exception as e:
+        logging.exception('An error occurred processing EPrints record [%s]', record)
+        if err_code is None:
+            err_code = 'GENERR009'
+        status, reason = 'Failure', str(e)
+        message = _decorate_message_with_error(message, err_code, reason)
+        kinesis_client.put_invalid_message_on_queue(message)
 
-            # Put the RDSS message onto the message queue.
-            kinesis_client.put_message_on_queue(message)
+    # Update the DynamoDB table with the status of the processing of this record.
+    dynamodb_client.update_processed_record(
+        record['header']['identifier'],
+        message if message is not None and len(message) > 0 else '-',
+        status,
+        reason
+    )
 
-        except Exception as e:
-            logging.exception('An error occurred processing EPrints record [%s]', record)
-            if err_code is None:
-                err_code = 'GENERR009'
-            status, reason = 'Failure', str(e)
-            message = _decorate_message_with_error(message, err_code, reason)
-            kinesis_client.put_invalid_message_on_queue(message)
-
-        # Update the DynamoDB table with the status of the processing of this record.
-        dynamodb_client.update_processed_record(
-            record['header']['identifier'],
-            message if message is not None and len(message) > 0 else '-',
-            status,
-            reason
-        )
-
-        # Update the high watermark to the datestamp of this EPrints record.
-        dynamodb_client.update_high_watermark(record['header']['datestamp'])
+    # Update the high watermark to the datestamp of this EPrints record.
+    dynamodb_client.update_high_watermark(record['header']['datestamp'])
 
 
 def _push_files_to_s3(record):
