@@ -83,7 +83,7 @@ def _initialise_dynamodb_client(settings):
     )
 
 
-def _initialise_eprints_client(settings):
+def _initialise_oai_client(settings):
     return OAIClient(settings['EPRINTS_EPRINTS_URL'])
 
 
@@ -177,16 +177,16 @@ def _push_files_to_s3(record):
     for file_location in record['file_locations']:
         file_path = download_client.download_file(file_location)
         if file_path is not None:
-            file_locations.append(
-                    s3_client.push_to_bucket(file_location, file_path)
-                    )
+            s3_file_locations.append(
+                s3_client.push_to_bucket(file_location, file_path)
+            )
             try:
                 os.remove(file_path)
             except FileNotFoundError:
                 logging.warning('An error occurred removing file [%s]', file_path)
         else:
             logging.warning('Unable to download file [%s], skipping file', file_location)
-    return file_locations
+    return s3_file_locations
 
 
 def _decorate_message_with_error(message, error_code, error_message):

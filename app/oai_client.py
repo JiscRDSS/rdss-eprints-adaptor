@@ -3,7 +3,8 @@ import logging
 from oaipmh.client import Client
 from oaipmh.metadata import MetadataRegistry, oai_dc_reader
 from oaipmh.error import NoRecordsMatchError
-from .oaiore.reader import oai_ore_reader 
+from .oaiore.reader import oai_ore_reader
+
 
 class OAIClient(object):
 
@@ -22,7 +23,7 @@ class OAIClient(object):
         records = self._fetch_records_by_prefix_from('oai_dc', from_datetime)
         if self.use_ore:
             oai_ore_records = self._fetch_records_by_prefix_from('ore', from_datetime)
-            records = self._merge_records(records, oai_ore_records) 
+            records = self._merge_records(records, oai_ore_records)
         for r in records.values():
             r['file_locations'] = self._extract_file_locations(r)
         return sorted(records.values(), key=lambda k: k['datestamp'])
@@ -48,10 +49,10 @@ class OAIClient(object):
     def _structured_record(self, metadata_prefix, record):
         logging.info('Converting record [%s]', record[0].identifier())
         record_dict = {
-                'identifier': record[0].identifier(),
-                'datestamp': record[0].datestamp(),
-                metadata_prefix: self._record_metadata_to_dict(record[1])
-                }
+            'identifier': record[0].identifier(),
+            'datestamp': record[0].datestamp(),
+            metadata_prefix: self._record_metadata_to_dict(record[1])
+        }
         return record[0].identifier(), record_dict
 
     def _record_metadata_to_dict(self, record_metadata):
@@ -64,11 +65,11 @@ class OAIClient(object):
         file_locations = []
         if self.use_ore:
             for l in record['ore']['link']:
-                relation = l.get('rel','')
+                relation = l.get('rel', '')
                 if relation == 'http://www.openarchives.org/ore/terms/aggregates':
-                    file_locations.append(l.get('href',''))
+                    file_locations.append(l.get('href', ''))
         else:
             for identifier in record['oai_dc']['identifier']:
-                if identifier.startswith(('http://','https://')):
+                if identifier.startswith(('http://', 'https://')):
                     file_locations.append(identifier)
         return list(filter(None, file_locations))

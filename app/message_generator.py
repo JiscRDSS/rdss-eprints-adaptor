@@ -75,31 +75,29 @@ class MessageGenerator(object):
         except Exception:
             logging.exception('An error occurred retrieving EC2 metadata private ipv4 address')
             return '0.0.0.0'
-    
-    def _extract_single_value_from_dict(self, key, dc_metadata):
-        """ From a dict where the values are lists, extracts the first value from that list. 
-            """
+
+    def _single_value_from_dc_metadata(self, key, dc_metadata):
         values = dc_metadata.get(key)
-        if not values: 
-            logging.warning('DC metadata [%s] does not contain [\'%s\'] field', record, key)
+        if not values:
+            logging.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)
             return None
         if len(values) > 1:
             logging.warning('DC metadata [\'%s\'] has more than 1 value', key)
         return values[0]
 
     def _extract_object_title(self, dc_metadata):
-        return self._extract_single_value_from_dict(dc_metadata, 'title')
+        return self._single_value_from_dc_metadata(dc_metadata, 'title')
 
     def _extract_object_description(self, dc_metadata):
-        return self._extract_single_value_from_dict(dc_metadata, 'description')
+        return self._single_value_from_dc_metadata(dc_metadata, 'description')
 
     def _extract_object_rights(self, dc_metadata):
-        return self._extract_single_value_from_dict(dc_metadata, 'rights')
+        return self._single_value_from_dc_metadata(dc_metadata, 'rights')
 
     def _extract_object_date(self, dc_metadata):
         return parser.parse(
-                self._extract_single_value_from_dict(dc_metadata, 'date')
-                ).isoformat()
+            self._single_value_from_dc_metadata(dc_metadata, 'date')
+        ).isoformat()
 
     def _extract_object_person_roles(self, dc_metadata):
         def _object_person_role(name, role_enum):
@@ -128,9 +126,9 @@ class MessageGenerator(object):
 
     def _doi_identifier(self, value):
         return {
-                'identifierValue': identifier,
-                'identifierType': 4
-                }
+            'identifierValue': value,
+            'identifierType': 4
+        }
 
     def _extract_object_identifier_value(self, dc_metadata):
         return [self._doi_identifier(_id) for _id in dc_metadata.get('identifier', [])]
@@ -139,7 +137,7 @@ class MessageGenerator(object):
         return [{
             'identifier': self._doi_identifier(rel),
             'relationType': 13
-            } for rel in dc_metadata.get('relation', [])]
+        } for rel in dc_metadata.get('relation', [])]
 
     def _extract_object_organisation_role(self, dc_metadata):
         return [{
@@ -148,7 +146,7 @@ class MessageGenerator(object):
                     'organisationName': publisher
                 },
                 'role': 5
-            } for publisher in dc_metadata.get('publisher', [])]
+                } for publisher in dc_metadata.get('publisher', [])]
 
     def _extract_object_files(self, s3_objects):
         return [{
@@ -164,4 +162,4 @@ class MessageGenerator(object):
                 'fileStoragePlatform': {
                     'storagePlatformUuid': uuid.uuid4()
                 }
-            } for s3_object in s3_objects]
+                } for s3_object in s3_objects]
