@@ -18,14 +18,16 @@ class OAIClient(object):
         logging.info('Initialising OAI client with URL [%s]', url)
         return Client(url, registry)
 
-    def fetch_records(self, from_datetime):
-        records = self._fetch_records_from('oai_dc', from_datetime)
+    def fetch_records_from(self, from_datetime):
+        records = self._fetch_records_by_prefix_from('oai_dc', from_datetime)
         if self.use_ore:
-            oai_ore_records = self._fetch_records_from('ore', from_datetime)
+            oai_ore_records = self._fetch_records_by_prefix_from('ore', from_datetime)
             records = self._merge_records(records, oai_ore_records) 
+        for r in records.values():
+            r['file_locations'] = self._extract_file_locations(r)
         return sorted(records.values(), key=lambda k: k['datestamp'])
 
-    def _fetch_records_from(self, metadata_prefix, from_datetime):
+    def _fetch_records_by_prefix_from(self, metadata_prefix, from_datetime):
         logging.info('Querying for %s records from [%s]', metadata_prefix, from_datetime)
         try:
             # Fetch all records since the given from_datetime parameter.
@@ -43,7 +45,6 @@ class OAIClient(object):
             merged_records[k] = {**v, **records_b[k]}
         return merged_records
 
-
     def _structured_record(self, metadata_prefix, record):
         logging.info('Converting record [%s]', record[0].identifier())
         record_dict = {
@@ -58,3 +59,16 @@ class OAIClient(object):
             return record_metadata.getMap()
         else:
             return None
+
+    def _extract_file_locations(self, record):
+        file_locations = []
+        if self.use_ore:
+            for l in record['ore']['link']:
+                relation = l.get('rel','')
+                if relation == 'http://www.openarchives.org/ore/terms/aggregates':
+                    file_locations.append(l.get('href',''))
+        else:
+            for identifier in record['oai_dc']['identifier']:
+                if identifier.startswith(('http://','https://')):
+                    file_locations.append(identifier)
+        return list(filter(None, file_locations))
