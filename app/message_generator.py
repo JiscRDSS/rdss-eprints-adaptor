@@ -76,7 +76,7 @@ class MessageGenerator(object):
             logging.exception('An error occurred retrieving EC2 metadata private ipv4 address')
             return '0.0.0.0'
 
-    def _single_value_from_dc_metadata(self, key, dc_metadata):
+    def _single_value_from_dc_metadata(self, dc_metadata, key):
         values = dc_metadata.get(key)
         if not values:
             logging.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)

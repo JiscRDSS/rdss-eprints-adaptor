@@ -5,7 +5,7 @@ import os
 import sys
 import itertools
 
-from app import OAIClient
+from app import OAIPMHClient
 from app import DownloadClient
 from app import DynamoDBClient
 from app import KinesisClient
@@ -23,7 +23,7 @@ logging.basicConfig(
 
 download_client = None
 dynamodb_client = None
-oai_client = None
+oai_pmh_client = None
 kinesis_client = None
 message_generator = None
 message_validator = None
@@ -39,8 +39,8 @@ def main():
     download_client = _initialise_download_client()
     global dynamodb_client
     dynamodb_client = _initialise_dynamodb_client(settings)
-    global oai_client
-    oai_client = _initialise_oai_client(settings)
+    global oai_pmh_client
+    oai_pmh_client = _initialise_oai_pmh_client(settings)
     global kinesis_client
     kinesis_client = _initialise_kinesis_client(settings)
     global message_generator
@@ -60,7 +60,7 @@ def main():
     flow_limit = int(settings['EPRINTS_FLOW_LIMIT'])
 
     # Query OAI endpoint for all the records since the high watermark.
-    records = oai_client.fetch_records_from(start_timestamp)
+    records = oai_pmh_client.fetch_records_from(start_timestamp)
     # Filter out records that have already been successfully processed
     filtered_records = itertools.islice(filter(_record_success_filter, records), flow_limit)
 
@@ -83,8 +83,15 @@ def _initialise_dynamodb_client(settings):
     )
 
 
-def _initialise_oai_client(settings):
-    return OAIClient(settings['EPRINTS_EPRINTS_URL'])
+def _initialise_oai_pmh_client(settings):
+    use_ore = {
+        'DSPACE': True,
+        'EPRINTS': False
+    }
+    return OAIPMHClient(
+        settings['OAI_PMH_ENDPOINT_URL'],
+        use_ore[settings['OAI_PMH_PROVIDER']]
+    )
 
 
 def _initialise_kinesis_client(settings):
@@ -227,9 +234,10 @@ def _parse_env_vars(env_var_names):
 
 def _get_settings():
     return _parse_env_vars((
+        'OAI_PMH_PROVIDER',
+        'OAI_PMH_ENDPOINT_URL',
         'EPRINTS_JISC_ID',
         'EPRINTS_ORGANISATION_NAME',
-        'EPRINTS_EPRINTS_URL',
         'EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME',
         'EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME',
         'EPRINTS_S3_BUCKET_NAME',

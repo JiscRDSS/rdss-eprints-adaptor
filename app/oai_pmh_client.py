@@ -6,7 +6,7 @@ from oaipmh.error import NoRecordsMatchError
 from .oaiore.reader import oai_ore_reader
 
 
-class OAIClient(object):
+class OAIPMHClient(object):
 
     def __init__(self, url, use_ore=False):
         self.client = self._initialise_client(url)

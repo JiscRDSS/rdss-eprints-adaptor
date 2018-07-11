@@ -1,37 +1,78 @@
 from mock import patch
 
-from app import EPrintsClient
+from app import OAIPMHClient
 from dateutil import parser
 from xml.dom import minidom
+from urllib.parse import parse_qs
+
+def oai_response_to_prefix(*args, **kwargs):
+    """ Extracts metadataPrefix being used in call to urlopen by the underlying 
+        oaipmh client and returns appropriate response. 
+        """
+    prefix = parse_qs(args[0].data)[b'metadataPrefix'][0]
+    responses = {
+            b'ore': MockResponse(_get_xml_file('tests/app/data/ore_response.xml'), 200, 'OK'),
+            b'oai_dc': MockResponse(_get_xml_file('tests/app/data/oai_dc_response.xml'), 200, 'OK')
+            }
+    return responses[prefix]
+
+
+@patch('oaipmh.client.urllib2.urlopen')
+def test_fetch_records_from_with_ore(mock_urlopen):
+    endpoint_url = 'http://dspace.test/dspace-oai/request' 
+    oai_pmh_client = OAIPMHClient(endpoint_url, use_ore=True)
+    mock_urlopen.side_effect = oai_response_to_prefix
+    # Passing in a datetime, but it's not being tested
+    records = oai_pmh_client.fetch_records_from(parser.parse('1970-01-01T00:00:00'))
+    labels = ['one', 'two', 'three']
+    for i, (label, record) in enumerate(zip(labels, records), 1):
+        assert record['identifier'] == "oai:dspace.text:test_handle/{}".format(label)
+        assert record['datestamp'] == parser.parse("2018-0{0}-0{0}T0{0}:0{0}:0{0}".format(i))
+        dc = record['oai_dc']
+        assert dc['title'][0] == 'Test Title {}'.format(label)
+        assert dc['creator'][0] == 'Test Creator {}'.format(label)
+        assert dc['contributor'][0] == 'Test Contributor {}'.format(label)
+        assert dc['description'][0] == 'Test Description {}'.format(label)
+        assert dc['identifier'][0] == 'http://hdl.handle.net/test_handle/{}'.format(label)
+        assert dc['coverage'][0] == 'Test Coverage {}'.format(label)
+        assert dc['date'][0] == "2018-0{0}-0{0}T0{0}:0{0}:0{0}Z".format(i)
+        assert dc['date'][1] == "199{0}".format(i)
+
+        assert dc['type'][0] == "Thesis"
+        assert dc['type'][1] == "Doctoral"
+
+        assert dc['language'][0] == "en"
+
+        assert dc['publisher'][0] == "The University of Testing"
+
+        assert record['file_locations'] == ["https://dspace.text/bitstream/test_handle/{0}/2/TestFile{0}.pdf".format(label)] 
+
+
 
 
 @patch('oaipmh.client.urllib2.urlopen')
 def test_fetch_records_from(mock_urlopen):
     # Create the EPrints client we'll be testing against
-    eprints_client = EPrintsClient('http://eprints.test/cgi/oai2')
-
+    oai_pmh_client = OAIPMHClient('http://eprints.test/cgi/oai2')
     # Get a handle on the string of the test XML
     xml_str = _get_xml_file('tests/app/data/eprints-response.xml')
 
     # Create a mock response to urlib2's urlopen call
     mock_urlopen.return_value = MockResponse(xml_str, 200, 'OK')
 
-    # Invoke the EPrints client, fetching records from the epoch
-    records = eprints_client.fetch_records_from(parser.parse('1970-01-01T00:00:00'))
+    records = oai_pmh_client.fetch_records_from(parser.parse('1970-01-01T00:00:00'))
 
     # Validate that we only got a single record back
     assert len(records) == 1
     record = records[0]
 
     # Validate the header field
-    assert len(record['header']) == 2
-    header = record['header']
-    assert header['identifier'] == 'hdl:1765/1163'
-    assert header['datestamp'] == parser.parse('2004-02-16T14:10:55')
+    assert record['identifier'] == 'hdl:1765/1163'
+    assert record['datestamp'] == parser.parse('2004-02-16T14:10:55')
 
     # Validate the metadata field
-    assert len(record['metadata']) == 15
-    metadata = record['metadata']
+    assert len(record['oai_dc']) == 15
+    metadata = record['oai_dc']
     assert metadata['creator'][0] == 'Pau, L-F'
     assert metadata['contributor'][0] == 'Pau, L-F'
     assert metadata['date'][0] == '2004-02-16T13:51:07Z'

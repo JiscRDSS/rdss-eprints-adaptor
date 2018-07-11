@@ -1,4 +1,4 @@
-from app.oai_client import OAIClient
+from app.oai_pmh_client import OAIPMHClient
 from app.download_client import DownloadClient
 from app.dynamodb_client import DynamoDBClient
 from app.kinesis_client import KinesisClient
@@ -8,7 +8,7 @@ from app.kinesis_client import PoisonPill
 from app.s3_client import S3Client
 
 __all__ = [
-    'OAIClient',
+    'OAIPMHClient',
     'DownloadClient',
     'DynamoDBClient',
     'KinesisClient',

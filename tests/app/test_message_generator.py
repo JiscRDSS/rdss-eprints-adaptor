@@ -76,11 +76,9 @@ def test_generate_metadata_create(*args):
 
 def _build_test_record():
     return {
-        'header': {
-            'identifier': 'test-eprints-record',
-            'datestamp': '2018-03-23T12:34:56'
-        },
-        'metadata': {
+        'identifier': 'test-eprints-record',
+        'datestamp': '2018-03-23T12:34:56',
+        'oai_dc': {
             'title': ['Test title'],
             'creator': ['Test creator'],
             'contributor': ['Test contributor'],
@@ -91,7 +89,10 @@ def _build_test_record():
             'date': ['2018-03-23T09:10:15'],
             'subject': ['Test subject'],
             'identifier': ['http://eprints.test/download/file.dat']
-        }
+        },
+        'file_locations': [
+            'http://eprints.test/download/file.dat'
+        ]
     }
 
 

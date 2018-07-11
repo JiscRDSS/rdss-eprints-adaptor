@@ -2,7 +2,7 @@ import json
 import os
 import run
 
-from app import EPrintsClient
+from app import OAIPMHClient
 from app import DownloadClient
 from app import DynamoDBClient
 from app import KinesisClient
@@ -16,13 +16,13 @@ from mock import MagicMock, patch
 
 @patch('run._initialise_download_client')
 @patch('run._initialise_dynamodb_client')
-@patch('run._initialise_eprints_client')
+@patch('run._initialise_oai_pmh_client')
 @patch('run._initialise_kinesis_client')
 @patch('run._initialise_message_generator')
 @patch('run._initialise_message_validator')
 @patch('run._initialise_s3_client')
 def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_message_generator,
-              _initialise_kinesis_client, _initialise_eprints_client, _initialise_dynamodb_client,
+              _initialise_kinesis_client, _initialise_oai_pmh_client, _initialise_dynamodb_client,
               _initialise_download_client):
     # Initialise the test environment variables
     _initialise_env_variables()
@@ -35,9 +35,9 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
     mock_dynamodb_client = _mock_dynamodb_client()
     _initialise_dynamodb_client.return_value = mock_dynamodb_client
 
-    # Mock out the EPrints client
-    mock_eprints_client = _mock_eprints_client()
-    _initialise_eprints_client.return_value = mock_eprints_client
+    # Mock out the OAI PMH client
+    mock_oai_pmh_client = _mock_oai_pmh_client()
+    _initialise_oai_pmh_client.return_value = mock_oai_pmh_client
 
     # Mock out the Kinesis client
     mock_kinesis_client = _mock_kinesis_client()
@@ -60,7 +60,7 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
 
     # Validate that the appropriate calls were made
     mock_dynamodb_client.fetch_high_watermark.assert_called_once_with()
-    mock_eprints_client.fetch_records_from.assert_called_once_with('1970-01-01T00:00:00')
+    mock_oai_pmh_client.fetch_records_from.assert_called_once_with('1970-01-01T00:00:00')
     mock_dynamodb_client.fetch_processed_status.assert_called_once_with('test-identifier')
     mock_download_client.download_file.assert_called_once_with(
         'http://eprints.test/download/file.dat'
@@ -71,11 +71,9 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
     )
     mock_message_generator.generate_metadata_create.assert_called_once_with(
         {
-            'header': {
-                'identifier': 'test-identifier',
-                'datestamp': parser.parse('2004-02-16T14:10:55')
-            },
-            'metadata': {
+            'identifier': 'test-identifier',
+            'datestamp': parser.parse('2004-02-16T14:10:55'), 
+            'oai_dc': {
                 'creator': ['Test Creator'],
                 'contributor': ['Test Contributor'],
                 'date': ['2004-02-16T13:51:07Z'],
@@ -86,7 +84,8 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
                 'title': ['Test Title'],
                 'type': ['Test Type'],
                 'format': ['Test Format']
-            }
+            },
+            'file_locations': ['http://eprints.test/download/file.dat']
         },
         [{
             'file_name': 'file.dat',
@@ -104,9 +103,10 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
 
 
 def _initialise_env_variables():
+    os.environ['OAI_PMH_ENDPOINT_URL'] = 'http://eprints.test/cgi/oai2'
+    os.environ['OAI_PMH_PROVIDER'] = 'eprints'
     os.environ['EPRINTS_JISC_ID'] = '12345'
     os.environ['EPRINTS_ORGANISATION_NAME'] = 'Test Organisation'
-    os.environ['EPRINTS_EPRINTS_URL'] = 'http://eprints.test/cgi/oai2'
     os.environ['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'] = 'rdss-eprints-adaptor-watermark-test'
     os.environ['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME'] = 'rdss-eprints-adaptor-processed-test'
     os.environ['EPRINTS_S3_BUCKET_NAME'] = 'rdss-prints-adaptor-test-bucket'
@@ -134,16 +134,14 @@ def _mock_dynamodb_client():
     return mock_dynamodb_client
 
 
-def _mock_eprints_client():
-    mock_eprints_client = EPrintsClient('http://eprints.test/cgi/oai2')
-    mock_eprints_client.fetch_records_from = MagicMock(
+def _mock_oai_pmh_client():
+    mock_oai_pmh_client = OAIPMHClient('http://eprints.test/cgi/oai2')
+    mock_oai_pmh_client.fetch_records_from = MagicMock(
         return_value=[
             {
-                'header': {
-                    'identifier': 'test-identifier',
-                    'datestamp': parser.parse('2004-02-16T14:10:55')
-                },
-                'metadata': {
+                'identifier': 'test-identifier',
+                'datestamp': parser.parse('2004-02-16T14:10:55'),
+                'oai_dc': {
                     'creator': ['Test Creator'],
                     'contributor': ['Test Contributor'],
                     'date': ['2004-02-16T13:51:07Z'],
@@ -154,11 +152,12 @@ def _mock_eprints_client():
                     'title': ['Test Title'],
                     'type': ['Test Type'],
                     'format': ['Test Format']
-                }
+                },
+                'file_locations': ['http://eprints.test/download/file.dat'],
             }
         ]
     )
-    return mock_eprints_client
+    return mock_oai_pmh_client
 
 
 def _mock_kinesis_client():
