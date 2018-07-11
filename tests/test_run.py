@@ -72,7 +72,7 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
     mock_message_generator.generate_metadata_create.assert_called_once_with(
         {
             'identifier': 'test-identifier',
-            'datestamp': parser.parse('2004-02-16T14:10:55'), 
+            'datestamp': parser.parse('2004-02-16T14:10:55'),
             'oai_dc': {
                 'creator': ['Test Creator'],
                 'contributor': ['Test Contributor'],
