@@ -57,7 +57,7 @@ def main():
         start_timestamp = datetime.now()
         dynamodb_client.update_high_watermark(start_timestamp)
 
-    flow_limit = int(settings['EPRINTS_FLOW_LIMIT'])
+    flow_limit = int(settings['OAI_PMH_ADAPTOR_FLOW_LIMIT'])
 
     # Query OAI endpoint for all the records since the high watermark.
     records = oai_pmh_client.fetch_records_from(start_timestamp)
@@ -78,8 +78,8 @@ def _initialise_download_client():
 
 def _initialise_dynamodb_client(settings):
     return DynamoDBClient(
-        settings['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'],
-        settings['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME']
+        settings['DYNAMODB_WATERMARK_TABLE_NAME'],
+        settings['DYNAMODB_PROCESSED_TABLE_NAME']
     )
 
 
@@ -96,21 +96,21 @@ def _initialise_oai_pmh_client(settings):
 
 def _initialise_kinesis_client(settings):
     return KinesisClient(
-        settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'],
-        settings['EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME']
+        settings['OUTPUT_KINESIS_STREAM_NAME'],
+        settings['OUTPUT_KINESIS_INVALID_STREAM_NAME']
     )
 
 
 def _initialise_message_generator(settings):
-    return MessageGenerator(settings['EPRINTS_JISC_ID'], settings['EPRINTS_ORGANISATION_NAME'])
+    return MessageGenerator(settings['JISC_ID'], settings['ORGANISATION_NAME'])
 
 
 def _initialise_message_validator(settings):
-    return MessageValidator(settings['EPRINTS_API_SPECIFICATION_VERSION'])
+    return MessageValidator(settings['RDSS_MESSAGE_API_SPECIFICATION_VERSION'])
 
 
 def _initialise_s3_client(settings):
-    return S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
+    return S3Client(settings['S3_BUCKET_NAME'])
 
 
 def _record_success_filter(record):
@@ -236,15 +236,15 @@ def _get_settings():
     return _parse_env_vars((
         'OAI_PMH_PROVIDER',
         'OAI_PMH_ENDPOINT_URL',
-        'EPRINTS_JISC_ID',
-        'EPRINTS_ORGANISATION_NAME',
-        'EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME',
-        'EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME',
-        'EPRINTS_S3_BUCKET_NAME',
-        'EPRINTS_OUTPUT_KINESIS_STREAM_NAME',
-        'EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME',
-        'EPRINTS_API_SPECIFICATION_VERSION',
-        'EPRINTS_FLOW_LIMIT'
+        'JISC_ID',
+        'ORGANISATION_NAME',
+        'DYNAMODB_WATERMARK_TABLE_NAME',
+        'DYNAMODB_PROCESSED_TABLE_NAME',
+        'S3_BUCKET_NAME',
+        'OUTPUT_KINESIS_STREAM_NAME',
+        'OUTPUT_KINESIS_INVALID_STREAM_NAME',
+        'RDSS_MESSAGE_API_SPECIFICATION_VERSION',
+        'OAI_PMH_ADAPTOR_FLOW_LIMIT'
     ))
 
 

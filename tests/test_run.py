@@ -105,15 +105,15 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
 def _initialise_env_variables():
     os.environ['OAI_PMH_ENDPOINT_URL'] = 'http://eprints.test/cgi/oai2'
     os.environ['OAI_PMH_PROVIDER'] = 'eprints'
-    os.environ['EPRINTS_JISC_ID'] = '12345'
-    os.environ['EPRINTS_ORGANISATION_NAME'] = 'Test Organisation'
-    os.environ['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'] = 'rdss-eprints-adaptor-watermark-test'
-    os.environ['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME'] = 'rdss-eprints-adaptor-processed-test'
-    os.environ['EPRINTS_S3_BUCKET_NAME'] = 'rdss-prints-adaptor-test-bucket'
-    os.environ['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'] = 'rdss-eprints-adaptor-test-stream'
-    os.environ['EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME'] = 'rdss-eprints-adaptor-invalid-stream'
-    os.environ['EPRINTS_API_SPECIFICATION_VERSION'] = '3.0.1'
-    os.environ['EPRINTS_FLOW_LIMIT'] = '1'
+    os.environ['JISC_ID'] = '12345'
+    os.environ['ORGANISATION_NAME'] = 'Test Organisation'
+    os.environ['DYNAMODB_WATERMARK_TABLE_NAME'] = 'rdss-eprints-adaptor-watermark-test'
+    os.environ['DYNAMODB_PROCESSED_TABLE_NAME'] = 'rdss-eprints-adaptor-processed-test'
+    os.environ['S3_BUCKET_NAME'] = 'rdss-prints-adaptor-test-bucket'
+    os.environ['OUTPUT_KINESIS_STREAM_NAME'] = 'rdss-eprints-adaptor-test-stream'
+    os.environ['OUTPUT_KINESIS_INVALID_STREAM_NAME'] = 'rdss-eprints-adaptor-invalid-stream'
+    os.environ['RDSS_MESSAGE_API_SPECIFICATION_VERSION'] = '3.0.1'
+    os.environ['OAI_PMH_ADAPTOR_FLOW_LIMIT'] = '1'
 
 
 def _mock_download_client():
