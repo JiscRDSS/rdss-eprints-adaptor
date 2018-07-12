@@ -85,8 +85,8 @@ def _initialise_dynamodb_client(settings):
 
 def _initialise_oai_pmh_client(settings):
     use_ore = {
-        'DSPACE': True,
-        'EPRINTS': False
+        'dspace': True,
+        'eprints': False
     }
     return OAIPMHClient(
         settings['OAI_PMH_ENDPOINT_URL'],
