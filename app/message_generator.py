@@ -9,9 +9,10 @@ from dateutil import parser
 
 class MessageGenerator(object):
 
-    def __init__(self, jisc_id, organisation_name):
+    def __init__(self, jisc_id, organisation_name, oai_pmh_provider):
         self.jisc_id = jisc_id
         self.organisation_name = organisation_name
+        self.oai_pmh_provider = oai_pmh_provider
         self.env = self._initialise_environment()
         self.now = datetime.now().isoformat()
 
@@ -43,9 +44,11 @@ class MessageGenerator(object):
                     'sequence': uuid.uuid4()
                 },
                 'messageHistory': {
+                    'machineID': 'rdss-oai-pmh-adaptor',
                     'machineAddress': self._get_machine_address(),
                     'timestamp': self.now
-                }
+                },
+                'generator': self.oai_pmh_provider
             },
             'messageBody': {
                 'objectUuid': uuid.uuid4(),

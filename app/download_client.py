@@ -25,7 +25,7 @@ class DownloadClient(object):
 
     def _get_temp_file_name(self):
         # Generate a temporary file with the appropriate prefix and suffix.
-        temp_file = tempfile.mkstemp(prefix='eprints_adaptor-', suffix='.download')
+        temp_file = tempfile.mkstemp(prefix='oai_pmh_adaptor-', suffix='.download')
         logging.info('Generated temporary file [%s]', temp_file)
         return temp_file
 

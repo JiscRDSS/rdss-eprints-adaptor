@@ -62,18 +62,18 @@ class DynamoDBClient(object):
             }
         )
 
-    def fetch_processed_status(self, eprints_identifier):
+    def fetch_processed_status(self, oai_pmh_identifier):
         # Query the DynamoDB table to fetch the status of a record with the given identifier.
         logging.info(
             'Fetching processed record with EPrints identifier [%s] from table [%s]',
-            eprints_identifier,
+            oai_pmh_identifier,
             self.processed_table_name
         )
         response = self.client.get_item(
             TableName=self.processed_table_name,
             Key={
                 'Identifier': {
-                    'S': eprints_identifier
+                    'S': oai_pmh_identifier
                 }
             }
         )
@@ -84,21 +84,21 @@ class DynamoDBClient(object):
             logging.info(
                 'Got processed record status [%s] for EPrints identifier [%s]',
                 status,
-                eprints_identifier
+                oai_pmh_identifier
             )
             return status
         else:
             logging.info(
                 'No processed record exists for EPrints identifier [%s]',
-                eprints_identifier
+                oai_pmh_identifier
             )
             return None
 
-    def update_processed_record(self, eprints_identifier, message, status, reason):
+    def update_processed_record(self, oai_pmh_identifier, message, status, reason):
         # Add or update the row in the DynamoDB table with the given idetnfier.
         logging.info(
             'Updating processed record [%s] with a status of [%s] (reason: [%s]) in table [%s]',
-            eprints_identifier,
+            oai_pmh_identifier,
             status,
             reason,
             self.processed_table_name
@@ -107,7 +107,7 @@ class DynamoDBClient(object):
             TableName=self.processed_table_name,
             Item={
                 'Identifier': {
-                    'S': eprints_identifier
+                    'S': oai_pmh_identifier
                 },
                 'Message': {
                     'S': message

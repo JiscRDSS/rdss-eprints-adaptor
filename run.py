@@ -88,6 +88,11 @@ def _initialise_oai_pmh_client(settings):
         'dspace': True,
         'eprints': False
     }
+    logging.info('Initialising OAI-PMH client targeting %s for %s and with use_ore set to %s',
+                 settings['OAI_PMH_PROVIDER'],
+                 settings['OAI_PMH_ENDPOINT_URL'],
+                 use_ore[settings['OAI_PMH_PROVIDER']]
+                 )
     return OAIPMHClient(
         settings['OAI_PMH_ENDPOINT_URL'],
         use_ore[settings['OAI_PMH_PROVIDER']]
@@ -102,7 +107,11 @@ def _initialise_kinesis_client(settings):
 
 
 def _initialise_message_generator(settings):
-    return MessageGenerator(settings['JISC_ID'], settings['ORGANISATION_NAME'])
+    return MessageGenerator(
+        settings['JISC_ID'],
+        settings['ORGANISATION_NAME'],
+        settings['OAI_PMH_PROVIDER']
+    )
 
 
 def _initialise_message_validator(settings):
