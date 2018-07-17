@@ -44,7 +44,7 @@ class MessageGenerator(object):
                     'sequence': uuid.uuid4()
                 },
                 'messageHistory': {
-                    'machineID': 'rdss-oai-pmh-adaptor',
+                    'machineId': 'rdss-oai-pmh-adaptor-{}'.format(self.oai_pmh_provider),
                     'machineAddress': self._get_machine_address(),
                     'timestamp': self.now
                 },

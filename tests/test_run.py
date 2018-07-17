@@ -172,7 +172,7 @@ def _mock_kinesis_client():
 
 
 def _mock_message_generator():
-    mock_message_generator = MessageGenerator(12345, 'Test Organisation')
+    mock_message_generator = MessageGenerator(12345, 'Test Organisation', 'dspace')
     mock_message_generator.generate_metadata_create = MagicMock(
         return_value=json.dumps(json.load(open('tests/app/data/rdss-message.json')))
     )

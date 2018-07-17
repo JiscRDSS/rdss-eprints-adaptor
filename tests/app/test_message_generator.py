@@ -23,7 +23,7 @@ def test_generate_metadata_create(*args):
     )
 
     # Create the message generator client we'll be testing against
-    message_generator = MessageGenerator(12345, 'Test Organisation')
+    message_generator = MessageGenerator(12345, 'Test Organisation', 'dspace')
 
     # Generate the message using the dummy values
     test_record = _build_test_record()
@@ -36,10 +36,13 @@ def test_generate_metadata_create(*args):
     # Validate the messageId is present and in the correct format
     assert uuid4_regex.match(message_json['messageHeader']['messageId'])
 
+    assert message_json['messageHeader']['generator'] == 'dspace'
+
     # Validate the messageTimings are present and in the correct format
     assert parser.parse(message_json['messageHeader']['messageTimings']['publishedTimestamp'])
 
     # Validate the messageHistory is present and in the correct format
+    assert message_json['messageHeader']['messageHistory'][0]['machineId'] == 'rdss-oai-pmh-adaptor-dspace'
     assert message_json['messageHeader']['messageHistory'][0]['machineAddress'] == '123.123.123.123'
     assert parser.parse(message_json['messageHeader']['messageHistory'][0]['timestamp'])
 

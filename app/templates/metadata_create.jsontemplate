@@ -13,7 +13,7 @@
     },
     "messageHistory": [
       {
-        "machineId": "{{ messageHeader.messageHistory.machineID }}",
+        "machineId": "{{ messageHeader.messageHistory.machineId }}",
         "machineAddress": "{{ messageHeader.messageHistory.machineAddress }}",
         "timestamp": "{{ messageHeader.messageHistory.timestamp }}"
       }
