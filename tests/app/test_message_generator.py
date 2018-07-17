@@ -42,9 +42,10 @@ def test_generate_metadata_create(*args):
     assert parser.parse(message_json['messageHeader']['messageTimings']['publishedTimestamp'])
 
     # Validate the messageHistory is present and in the correct format
-    assert message_json['messageHeader']['messageHistory'][0]['machineId'] == 'rdss-oai-pmh-adaptor-dspace'
-    assert message_json['messageHeader']['messageHistory'][0]['machineAddress'] == '123.123.123.123'
-    assert parser.parse(message_json['messageHeader']['messageHistory'][0]['timestamp'])
+    message_history = message_json['messageHeader']['messageHistory'][0]
+    assert message_history['machineId'] == 'rdss-oai-pmh-adaptor-dspace'
+    assert message_history['machineAddress'] == '123.123.123.123'
+    assert parser.parse(message_history['timestamp'])
 
     # Validate the objectUuid is present and in the correct format
     assert uuid4_regex.match(message_json['messageBody']['objectUuid'])
