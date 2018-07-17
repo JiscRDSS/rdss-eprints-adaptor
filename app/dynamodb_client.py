@@ -65,7 +65,7 @@ class DynamoDBClient(object):
     def fetch_processed_status(self, oai_pmh_identifier):
         # Query the DynamoDB table to fetch the status of a record with the given identifier.
         logging.info(
-            'Fetching processed record with EPrints identifier [%s] from table [%s]',
+            'Fetching processed record with identifier [%s] from table [%s]',
             oai_pmh_identifier,
             self.processed_table_name
         )
@@ -82,14 +82,14 @@ class DynamoDBClient(object):
         if 'Item' in response:
             status = response['Item']['Status']['S']
             logging.info(
-                'Got processed record status [%s] for EPrints identifier [%s]',
+                'Got processed record status [%s] for identifier [%s]',
                 status,
                 oai_pmh_identifier
             )
             return status
         else:
             logging.info(
-                'No processed record exists for EPrints identifier [%s]',
+                'No processed record exists for identifier [%s]',
                 oai_pmh_identifier
             )
             return None
