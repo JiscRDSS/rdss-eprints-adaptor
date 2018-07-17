@@ -6,7 +6,7 @@ The RDSS OAI-PMH Adaptor is a per-institutional adaptor for use by institutions 
 
 The adaptor will execute periodically, querying the OAI-PMH endpoint exposed by the OAI-PMH provider to retrieve records that have been added to the repository since the creation timestamp of the most recently retrieved record. Once the record is retrieved, its corresponding digital objects are retrieved and stored in an S3 bucket, and its metadata is converted into a format compliant with the Jisc RDSS canonical data model. It is then published into the messaging system, for consumption by downstream systems.
 
-When the RDSS OAI-PMH adaptor is configured to target DSpace, it will query for records in both the `oai_dc` format and the `ore` format, using the latter to get the locations of files related to the record. When it is configured to target EPrints, it will only query for records in the `oai_dc` format, and use the `identifier` field to give the location of files related to the record. 
+When the RDSS OAI-PMH adaptor is configured to target DSpace, it will query for records in both the `oai_dc` format and the `ore` format, using the latter to get the locations of files related to the record. When it is configured to target EPrints, it will only query for records in the `oai_dc` format, and use the `identifier` field to give the location of files related to the record.
 
 The RDSS OAI-PMH Adaptor is capable of interacting with any OAI-PMH compliant endpoint.
 
