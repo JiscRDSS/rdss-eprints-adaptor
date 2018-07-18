@@ -70,11 +70,11 @@ pytest
 ## Frequently Asked Questions
 
 ## Will the adaptor work with any OAI-PMH endpoint?
-In theory the adaptor should work with any OAI-PMH endpoint, as the base mapping of metadata to the [RDSS Canonical Data Model](https://github.com/JiscRDSS/rdss-canonical-data-model/) uses the Dublin Core (DC) metadata response which all OAI-PMH implementations must support. In practice there is significant variation in the content of this metadata, and it is likely that some customisation of this is necessary for different OAI-PMH providers and institutions. 
+In theory the adaptor should work with any OAI-PMH endpoint, as the base mapping of metadata to the [RDSS Canonical Data Model](https://github.com/JiscRDSS/rdss-canonical-data-model/) uses the Dublin Core (DC) metadata response which all OAI-PMH implementations must support. In practice there is significant variation in the content of this metadata, and it is likely that some customisation of this is necessary for different OAI-PMH providers and institutions.
 
 At present when the RDSS OAI-PMH Adaptor is targeted at an Eprints instance, the location of files related to the record must be extracted from this DC metadata as Eprints does not provide OAI-ORE (or other) output. This working correctly is dependent on the `identifier` field containing a link to the associated file, the presence of which is not guaranteed.  
 
 ## How do I reset the adaptor to re-process records from the targeted OAI-PMH endpoint?
-The following two steps are required to force the adaptor to re-process records. 
-1) Records that are to be re-processed should be removed from the table defined by the `DYNAMODB_PROCESSED_TABLE_NAME`, the key for rows in this table being the identifier of the record within the OAI-PMH provider. 
-2) The `Value` of the `HighWatermark` stored in table defined by the `DYNAMODB_WATERMARK_TABLE_NAME` environmental variable must be set to an ISO 8601 datetime string prior to the datestamp of the earliest record that is to be re-processed. 
+The following two steps are required to force the adaptor to re-process records.
+1) Records that are to be re-processed should be removed from the table defined by the `DYNAMODB_PROCESSED_TABLE_NAME`, the key for rows in this table being the identifier of the record within the OAI-PMH provider.
+2) The `Value` of the `HighWatermark` stored in table defined by the `DYNAMODB_WATERMARK_TABLE_NAME` environmental variable must be set to an ISO 8601 datetime string prior to the datestamp of the earliest record that is to be re-processed.
