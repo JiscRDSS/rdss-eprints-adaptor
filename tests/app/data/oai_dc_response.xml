@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="static/style.xsl"?><OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd"><responseDate>2018-07-05T11:34:27Z</responseDate>
+    <request verb="ListRecords" metadataPrefix="oai_dc" from="1970-01-01T00:00:00Z">http://dspace.text/dspace-oai/request</request>
+    <ListRecords>
+        <record>
+            <header>
+                <identifier>oai:dspace.text:test_handle/one</identifier>
+                <datestamp>2018-01-01T01:01:01Z</datestamp>
+                <setSpec>com_10023_51</setSpec>
+                <setSpec>com_10023_18</setSpec>
+                <setSpec>col_10023_53</setSpec>
+            </header>
+            <metadata>
+                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:doc="http://www.lyncode.com/xoai" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>Test Title one</dc:title>
+                    <dc:creator>Test Creator one</dc:creator>
+                    <dc:contributor>Test Contributor one</dc:contributor>
+                    <dc:subject>Test Subject one</dc:subject>
+                    <dc:description>Test Description one</dc:description>
+                    <dc:date>2018-01-01T01:01:01Z</dc:date>
+                    <dc:date>1991</dc:date>
+                    <dc:type>Thesis</dc:type>
+                    <dc:type>Doctoral</dc:type>
+                    <dc:identifier>http://hdl.handle.net/test_handle/one</dc:identifier>
+                    <dc:language>en</dc:language>
+                    <dc:coverage>Test Coverage one</dc:coverage>
+                    <dc:publisher>The University of Testing</dc:publisher>
+                </oai_dc:dc>
+            </metadata>
+        </record>
+        <record>
+            <header>
+                <identifier>oai:dspace.text:test_handle/two</identifier>
+                <datestamp>2018-02-02T02:02:02Z</datestamp>
+                <setSpec>com_10023_45</setSpec>
+                <setSpec>com_10023_17</setSpec>
+                <setSpec>col_10023_47</setSpec>
+            </header>
+            <metadata>
+                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:doc="http://www.lyncode.com/xoai" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>Test Title two</dc:title>
+                    <dc:creator>Test Creator two</dc:creator>
+                    <dc:contributor>Test Contributor two</dc:contributor>
+                    <dc:subject>Test Subject two</dc:subject>
+                    <dc:description>Test Description two</dc:description>
+                    <dc:date>2018-02-02T02:02:02Z</dc:date>
+                    <dc:date>1992</dc:date>
+                    <dc:type>Thesis</dc:type>
+                    <dc:type>Doctoral</dc:type>
+                    <dc:identifier>http://hdl.handle.net/test_handle/two</dc:identifier>
+                    <dc:language>en</dc:language>
+                    <dc:coverage>Test Coverage two</dc:coverage>
+                    <dc:publisher>The University of Testing</dc:publisher>
+                </oai_dc:dc>
+            </metadata>
+        </record>
+        <record>
+            <header>
+                <identifier>oai:dspace.text:test_handle/three</identifier>
+                <datestamp>2018-03-03T03:03:03Z</datestamp>
+                <setSpec>com_10023_45</setSpec>
+                <setSpec>com_10023_17</setSpec>
+                <setSpec>col_10023_47</setSpec>
+            </header>
+            <metadata>
+                <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:doc="http://www.lyncode.com/xoai" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>Test Title three</dc:title>
+                    <dc:creator>Test Creator three</dc:creator>
+                    <dc:contributor>Test Contributor three</dc:contributor>
+                    <dc:subject>Test Subject three</dc:subject>
+                    <dc:description>Test Description three</dc:description>
+                    <dc:date>2018-03-03T03:03:03Z</dc:date>
+                    <dc:date>1993</dc:date>
+                    <dc:type>Thesis</dc:type>
+                    <dc:type>Doctoral</dc:type>
+                    <dc:identifier>http://hdl.handle.net/test_handle/three</dc:identifier>
+                    <dc:language>en</dc:language>
+                    <dc:coverage>Test Coverage three</dc:coverage>
+                    <dc:publisher>The University of Testing</dc:publisher>
+                </oai_dc:dc>
+            </metadata>
+        </record>
+    </ListRecords>
+</OAI-PMH>

@@ -17,9 +17,9 @@ class S3Client(object):
         logging.info('Initialising Boto3 S3 client')
         return boto3.client('s3')
 
-    def push_to_bucket(self, eprints_url, file_path):
+    def push_to_bucket(self, remote_url, file_path):
         # Get a handle on the S3 object key
-        object_key = self._build_object_key(eprints_url)
+        object_key = self._build_object_key(remote_url)
 
         # Push the file into S3. By using the upload_fileobj method, this upload will be executed
         # using multipart uplaods.
@@ -72,13 +72,13 @@ class S3Client(object):
             'download_url': 'https://{}.s3.amazonaws.com/{}'.format(self.bucket_name, object_key)
         }
 
-    def _build_object_key(self, eprints_url):
+    def _build_object_key(self, remote_url):
         # Strip the protocol, hostname and port off of the URL, leaving just the path behind. S3
         # object keys also shouldn't start with a leading slash, so strip that too.
-        eprints_path = urlparse(eprints_url).path
-        if eprints_path.startswith('/'):
-            return eprints_path[1:]
-        return eprints_path
+        remote_path = urlparse(remote_url).path
+        if remote_path.startswith('/'):
+            return remote_path[1:]
+        return remote_path
 
     def _calculate_file_checksum(self, file_path):
         # We can query the existing file on disk to calculate the checksum value.
