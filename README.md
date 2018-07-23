@@ -34,10 +34,10 @@ The following environmental variables are required for the adaptor to run. These
   * The URL of the OAI-PMH endpoint.
 
 * `DYNAMODB_WATERMARK_TABLE_NAME`
-  * The name of the DyanmoDB table where the high watermark of the adaptor is persisted.
+  * The name of the DynamoDB table where the high watermark of the adaptor is persisted.
 
 * `DYNAMODB_PROCESSED_TABLE_NAME`
-  * The name of the DyanmoDB table where the status of processed records are recorded.
+  * The name of the DynamoDB table where the status of processed records are recorded.
 
 * `S3_BUCKET_NAME`
   * The name of the S3 bucket used to persist the digital objects retrieved from the OAI-PMH provider.
