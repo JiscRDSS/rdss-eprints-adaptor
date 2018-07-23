@@ -13,13 +13,13 @@
     },
     "messageHistory": [
       {
-        "machineId": "rdss-eprints-adaptor",
+        "machineId": "{{ messageHeader.messageHistory.machineId }}",
         "machineAddress": "{{ messageHeader.messageHistory.machineAddress }}",
         "timestamp": "{{ messageHeader.messageHistory.timestamp }}"
       }
     ],
     "version": "3.0.0",
-    "generator": "eprints"
+    "generator": "{{ messageHeader.generator }}"
   },
   "messageBody": {
     "objectUuid": "{{ messageBody.objectUuid }}",

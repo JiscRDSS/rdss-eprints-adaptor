@@ -5,7 +5,7 @@ import os
 import sys
 import itertools
 
-from app import EPrintsClient
+from app import OAIPMHClient
 from app import DownloadClient
 from app import DynamoDBClient
 from app import KinesisClient
@@ -23,7 +23,7 @@ logging.basicConfig(
 
 download_client = None
 dynamodb_client = None
-eprints_client = None
+oai_pmh_client = None
 kinesis_client = None
 message_generator = None
 message_validator = None
@@ -39,8 +39,8 @@ def main():
     download_client = _initialise_download_client()
     global dynamodb_client
     dynamodb_client = _initialise_dynamodb_client(settings)
-    global eprints_client
-    eprints_client = _initialise_eprints_client(settings)
+    global oai_pmh_client
+    oai_pmh_client = _initialise_oai_pmh_client(settings)
     global kinesis_client
     kinesis_client = _initialise_kinesis_client(settings)
     global message_generator
@@ -57,15 +57,15 @@ def main():
         start_timestamp = datetime.now()
         dynamodb_client.update_high_watermark(start_timestamp)
 
-    flow_limit = int(settings['EPRINTS_FLOW_LIMIT'])
+    flow_limit = int(settings['OAI_PMH_ADAPTOR_FLOW_LIMIT'])
 
-    # Query EPrints for all the records since the high watermark.
-    records = eprints_client.fetch_records_from(start_timestamp)
+    # Query OAI endpoint for all the records since the high watermark.
+    records = oai_pmh_client.fetch_records_from(start_timestamp)
     # Filter out records that have already been successfully processed
     filtered_records = itertools.islice(filter(_record_success_filter, records), flow_limit)
 
     for record in filtered_records:
-        logging.info('Processing EPrints record [%s]', record)
+        logging.info('Processing record [%s]', record)
         _process_record(record)
 
     # We're done, shut down
@@ -78,48 +78,63 @@ def _initialise_download_client():
 
 def _initialise_dynamodb_client(settings):
     return DynamoDBClient(
-        settings['EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME'],
-        settings['EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME']
+        settings['DYNAMODB_WATERMARK_TABLE_NAME'],
+        settings['DYNAMODB_PROCESSED_TABLE_NAME']
     )
 
 
-def _initialise_eprints_client(settings):
-    return EPrintsClient(settings['EPRINTS_EPRINTS_URL'])
+def _initialise_oai_pmh_client(settings):
+    use_ore = {
+        'dspace': True,
+        'eprints': False
+    }
+    logging.info('Initialising OAI-PMH client targeting %s for %s and with use_ore set to %s',
+                 settings['OAI_PMH_PROVIDER'],
+                 settings['OAI_PMH_ENDPOINT_URL'],
+                 use_ore[settings['OAI_PMH_PROVIDER']]
+                 )
+    return OAIPMHClient(
+        settings['OAI_PMH_ENDPOINT_URL'],
+        use_ore[settings['OAI_PMH_PROVIDER']]
+    )
 
 
 def _initialise_kinesis_client(settings):
     return KinesisClient(
-        settings['EPRINTS_OUTPUT_KINESIS_STREAM_NAME'],
-        settings['EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME']
+        settings['OUTPUT_KINESIS_STREAM_NAME'],
+        settings['OUTPUT_KINESIS_INVALID_STREAM_NAME']
     )
 
 
 def _initialise_message_generator(settings):
-    return MessageGenerator(settings['EPRINTS_JISC_ID'], settings['EPRINTS_ORGANISATION_NAME'])
+    return MessageGenerator(
+        settings['JISC_ID'],
+        settings['ORGANISATION_NAME'],
+        settings['OAI_PMH_PROVIDER']
+    )
 
 
 def _initialise_message_validator(settings):
-    return MessageValidator(settings['EPRINTS_API_SPECIFICATION_VERSION'])
+    return MessageValidator(settings['RDSS_MESSAGE_API_SPECIFICATION_VERSION'])
 
 
 def _initialise_s3_client(settings):
-    return S3Client(settings['EPRINTS_S3_BUCKET_NAME'])
+    return S3Client(settings['S3_BUCKET_NAME'])
 
 
 def _record_success_filter(record):
     """ Filters out records that have already been processed successfully.
         """
-    eprints_identifier = record['header']['identifier']
-    status = dynamodb_client.fetch_processed_status(eprints_identifier)
+    status = dynamodb_client.fetch_processed_status(record['identifier'])
     logging.info(
-        'Got processed status [%s] for EPrints identifier [%s]',
+        'Got processed status [%s] for identifier [%s]',
         status,
-        eprints_identifier
+        record['identifier']
     )
     if status == 'Success':
         logging.info(
-            'EPrints record [%s] already successfully processed, skipping',
-            eprints_identifier
+            'Record [%s] already successfully processed, skipping',
+            record['identifier']
         )
         return False
     else:
@@ -127,8 +142,7 @@ def _record_success_filter(record):
 
 
 def _process_record(record):
-    eprints_identifier = record['header']['identifier']
-    logging.info('Processing EPrints record [%s]', eprints_identifier)
+    logging.info('Processing record [%s]', record['identifier'])
     message, status, reason, err_code = None, 'Success', '-', None
     try:
         # Fetch from EPrints and push the files associated with the record into S3.
@@ -164,41 +178,31 @@ def _process_record(record):
 
     # Update the DynamoDB table with the status of the processing of this record.
     dynamodb_client.update_processed_record(
-        record['header']['identifier'],
+        record['identifier'],
         message if message is not None and len(message) > 0 else '-',
         status,
         reason
     )
 
-    # Update the high watermark to the datestamp of this EPrints record.
-    dynamodb_client.update_high_watermark(record['header']['datestamp'])
+    # Update the high watermark to the datestamp of this record.
+    dynamodb_client.update_high_watermark(record['datestamp'])
 
 
 def _push_files_to_s3(record):
-    file_locations = []
-
-    # Iterate over the metadata identifiers. Some of these are just bits and pieces of text, but
-    # often it is a file associated with the record.
-    identifiers = record['metadata']['identifier']
-    for identifier in identifiers:
-
-        # Make sure it's actually a file URL we're looking at...
-        if identifier.startswith('http://') or identifier.startswith('https://'):
-
-            # Fetch the file from EPrints, and then push that file into S3 and remove the
-            # downloaded file from the disk.
-            file_path = download_client.download_file(identifier)
-            if file_path is not None:
-                file_locations.append(
-                    s3_client.push_to_bucket(identifier, file_path)
-                )
-                try:
-                    os.remove(file_path)
-                except FileNotFoundError:
-                    logging.warning('An error occurred removing file [%s]', file_path)
-            else:
-                logging.warning('Unable to download EPrints file [%s], skipping file', identifier)
-    return file_locations
+    s3_file_locations = []
+    for file_location in record['file_locations']:
+        file_path = download_client.download_file(file_location)
+        if file_path is not None:
+            s3_file_locations.append(
+                s3_client.push_to_bucket(file_location, file_path)
+            )
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                logging.warning('An error occurred removing file [%s]', file_path)
+        else:
+            logging.warning('Unable to download file [%s], skipping file', file_location)
+    return s3_file_locations
 
 
 def _decorate_message_with_error(message, error_code, error_message):
@@ -239,16 +243,17 @@ def _parse_env_vars(env_var_names):
 
 def _get_settings():
     return _parse_env_vars((
-        'EPRINTS_JISC_ID',
-        'EPRINTS_ORGANISATION_NAME',
-        'EPRINTS_EPRINTS_URL',
-        'EPRINTS_DYNAMODB_WATERMARK_TABLE_NAME',
-        'EPRINTS_DYNAMODB_PROCESSED_TABLE_NAME',
-        'EPRINTS_S3_BUCKET_NAME',
-        'EPRINTS_OUTPUT_KINESIS_STREAM_NAME',
-        'EPRINTS_OUTPUT_KINESIS_INVALID_STREAM_NAME',
-        'EPRINTS_API_SPECIFICATION_VERSION',
-        'EPRINTS_FLOW_LIMIT'
+        'OAI_PMH_PROVIDER',
+        'OAI_PMH_ENDPOINT_URL',
+        'JISC_ID',
+        'ORGANISATION_NAME',
+        'DYNAMODB_WATERMARK_TABLE_NAME',
+        'DYNAMODB_PROCESSED_TABLE_NAME',
+        'S3_BUCKET_NAME',
+        'OUTPUT_KINESIS_STREAM_NAME',
+        'OUTPUT_KINESIS_INVALID_STREAM_NAME',
+        'RDSS_MESSAGE_API_SPECIFICATION_VERSION',
+        'OAI_PMH_ADAPTOR_FLOW_LIMIT'
     ))
 
 

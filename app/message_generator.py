@@ -9,9 +9,10 @@ from dateutil import parser
 
 class MessageGenerator(object):
 
-    def __init__(self, jisc_id, organisation_name):
+    def __init__(self, jisc_id, organisation_name, oai_pmh_provider):
         self.jisc_id = jisc_id
         self.organisation_name = organisation_name
+        self.oai_pmh_provider = oai_pmh_provider
         self.env = self._initialise_environment()
         self.now = datetime.now().isoformat()
 
@@ -32,6 +33,7 @@ class MessageGenerator(object):
         logging.info('Fetching template [metadata_create.jsontemplate]')
         template = self.env.get_template('metadata_create.jsontemplate')
         logging.info('Rendering template using record [%s]', record)
+        dc_metadata = record['oai_dc']
         return template.render({
             'messageHeader': {
                 'messageId': uuid.uuid4(),
@@ -42,27 +44,29 @@ class MessageGenerator(object):
                     'sequence': uuid.uuid4()
                 },
                 'messageHistory': {
+                    'machineId': 'rdss-oai-pmh-adaptor-{}'.format(self.oai_pmh_provider),
                     'machineAddress': self._get_machine_address(),
                     'timestamp': self.now
-                }
+                },
+                'generator': self.oai_pmh_provider
             },
             'messageBody': {
                 'objectUuid': uuid.uuid4(),
-                'objectTitle': self._extract_object_title(record),
-                'objectPersonRole': self._extract_object_person_roles(record),
-                'objectDescription': self._extract_object_description(record),
+                'objectTitle': self._extract_object_title(dc_metadata),
+                'objectPersonRole': self._extract_object_person_roles(dc_metadata),
+                'objectDescription': self._extract_object_description(dc_metadata),
                 'objectRights': {
-                    'rightsStatement': self._extract_object_rights(record)
+                    'rightsStatement': self._extract_object_rights(dc_metadata)
                 },
                 'objectDate': {
-                    'dateValue': self._extract_object_date(record),
+                    'dateValue': self._extract_object_date(dc_metadata),
                     'dateType': 6
                 },
-                'objectKeywords': self._extract_object_keywords(record),
-                'objectCategory': self._extract_object_category(record),
-                'objectIdentifier': self._extract_object_identifier_value(record),
-                'objectRelatedIdentifier': self._extract_object_related_identifier(record),
-                'objectOrganisationRole': self._extract_object_organisation_role(record),
+                'objectKeywords': self._extract_object_keywords(dc_metadata),
+                'objectCategory': self._extract_object_category(dc_metadata),
+                'objectIdentifier': self._extract_object_identifier_value(dc_metadata),
+                'objectRelatedIdentifier': self._extract_object_related_identifier(dc_metadata),
+                'objectOrganisationRole': self._extract_object_organisation_role(dc_metadata),
                 'objectFile': self._extract_object_files(s3_objects)
             }
         })
@@ -75,21 +79,35 @@ class MessageGenerator(object):
             logging.exception('An error occurred retrieving EC2 metadata private ipv4 address')
             return '0.0.0.0'
 
-    def _extract_object_title(self, record):
-        if 'title' not in record['metadata'] or len(record['metadata']['title']) == 0:
-            logging.warning('Record [%s] does not contain [\'metadata\'][\'title\'] field', record)
+    def _single_value_from_dc_metadata(self, dc_metadata, key):
+        values = dc_metadata.get(key)
+        if not values:
+            logging.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)
             return None
-        if len(record['metadata']['title']) > 1:
-            logging.warning('Field [\'metadata\'][\'title\'] has more than 1 value')
-        return record['metadata']['title'][0]
+        if len(values) > 1:
+            logging.warning('DC metadata [\'%s\'] has more than 1 value', key)
+        return values[0]
 
-    def _extract_object_person_roles(self, record):
-        object_person_roles = []
-        for creator in record['metadata']['creator']:
-            object_person_roles.append({
+    def _extract_object_title(self, dc_metadata):
+        return self._single_value_from_dc_metadata(dc_metadata, 'title')
+
+    def _extract_object_description(self, dc_metadata):
+        return self._single_value_from_dc_metadata(dc_metadata, 'description')
+
+    def _extract_object_rights(self, dc_metadata):
+        return self._single_value_from_dc_metadata(dc_metadata, 'rights')
+
+    def _extract_object_date(self, dc_metadata):
+        return parser.parse(
+            self._single_value_from_dc_metadata(dc_metadata, 'date')
+        ).isoformat()
+
+    def _extract_object_person_roles(self, dc_metadata):
+        def _object_person_role(name, role_enum):
+            return {
                 'person': {
                     'personUuid': uuid.uuid4(),
-                    'personGivenName': creator,
+                    'personGivenName': name,
                     'personOrganisationUnit': {
                         'organisationUnitUuid': uuid.uuid4(),
                         'organisation': {
@@ -98,101 +116,43 @@ class MessageGenerator(object):
                         }
                     }
                 },
-                'role': 21
-            })
-        for contributor in record['metadata']['contributor']:
-            object_person_roles.append({
-                'person': {
-                    'personUuid': uuid.uuid4(),
-                    'personGivenName': contributor,
-                    'personOrganisationUnit': {
-                        'organisationUnitUuid': uuid.uuid4(),
-                        'organisation': {
-                            'organisationJiscId': self.jisc_id,
-                            'organisationName': self.organisation_name
-                        }
-                    }
-                },
-                'role': 21
-            })
-        return object_person_roles
+                'role': role_enum
+            }
+        people = dc_metadata.get('creator', []) + dc_metadata.get('contributor', [])
+        return [_object_person_role(person, 21) for person in people]
 
-    def _extract_object_description(self, record):
-        if 'description' not in record['metadata'] or len(record['metadata']['description']) == 0:
-            logging.warning(
-                'Record [%s] does not contain [\'metadata\'][\'description\'] field',
-                record
-            )
-            return None
-        if len(record['metadata']['description']) > 1:
-            logging.warning('Field [\'metadata\'][\'description\'] has more than 1 value')
-        return record['metadata']['description'][0]
+    def _extract_object_keywords(self, dc_metadata):
+        return dc_metadata.get('subject', [])
 
-    def _extract_object_rights(self, record):
-        if 'rights' not in record['metadata'] or len(record['metadata']['rights']) == 0:
-            logging.warning('Record [%s] does not contain [\'metadata\'][\'rights\'] field', record)
-            return None
-        if len(record['metadata']['rights']) > 1:
-            logging.warning('Field [\'metadata\'][\'rights\'] has more than 1 value')
-        return record['metadata']['rights'][0]
+    def _extract_object_category(self, dc_metadata):
+        return dc_metadata.get('subject', [])
 
-    def _extract_object_date(self, record):
-        if 'date' not in record['metadata'] or len(record['metadata']['date']) == 0:
-            logging.warning('Record [%s] does not contain [\'metadata\'][\'date\'] field', record)
-            return None
-        if len(record['metadata']['date']) > 1:
-            logging.warning('Field [\'metadata\'][\'date\'] has more than 1 value')
-        return parser.parse(record['metadata']['date'][0]).isoformat()
+    def _doi_identifier(self, value):
+        return {
+            'identifierValue': value,
+            'identifierType': 4
+        }
 
-    def _extract_object_keywords(self, record):
-        object_keywords = []
-        for subject in record['metadata']['subject']:
-            object_keywords.append(subject)
-        return object_keywords
+    def _extract_object_identifier_value(self, dc_metadata):
+        return [self._doi_identifier(_id) for _id in dc_metadata.get('identifier', [])]
 
-    def _extract_object_category(self, record):
-        object_categories = []
-        for subject in record['metadata']['subject']:
-            object_categories.append(subject)
-        return object_categories
+    def _extract_object_related_identifier(self, dc_metadata):
+        return [{
+            'identifier': self._doi_identifier(rel),
+            'relationType': 13
+        } for rel in dc_metadata.get('relation', [])]
 
-    def _extract_object_identifier_value(self, record):
-        object_identifiers = []
-        for identifier in record['metadata']['identifier']:
-            object_identifiers.append({
-                'identifierValue': identifier,
-                'identifierType': 4
-            })
-        return object_identifiers
-
-    def _extract_object_related_identifier(self, record):
-        object_related_identifiers = []
-        for relation in record['metadata']['relation']:
-            object_related_identifiers.append({
-                'identifier': {
-                    'identifierValue': relation,
-                    'identifierType': 4,
-                },
-                'relationType': 13
-            })
-        return object_related_identifiers
-
-    def _extract_object_organisation_role(self, record):
-        object_organisation_roles = []
-        for publisher in record['metadata']['publisher']:
-            object_organisation_roles.append({
+    def _extract_object_organisation_role(self, dc_metadata):
+        return [{
                 'organisation': {
                     'organisationJiscId': self.jisc_id,
                     'organisationName': publisher
                 },
                 'role': 5
-            })
-        return object_organisation_roles
+                } for publisher in dc_metadata.get('publisher', [])]
 
     def _extract_object_files(self, s3_objects):
-        object_files = []
-        for s3_object in s3_objects:
-            object_files.append({
+        return [{
                 'fileUuid': uuid.uuid4(),
                 'fileIdentifier': s3_object['file_path'],
                 'fileName': s3_object['file_name'],
@@ -205,5 +165,4 @@ class MessageGenerator(object):
                 'fileStoragePlatform': {
                     'storagePlatformUuid': uuid.uuid4()
                 }
-            })
-        return object_files
+                } for s3_object in s3_objects]

@@ -23,7 +23,7 @@ def test_generate_metadata_create(*args):
     )
 
     # Create the message generator client we'll be testing against
-    message_generator = MessageGenerator(12345, 'Test Organisation')
+    message_generator = MessageGenerator(12345, 'Test Organisation', 'dspace')
 
     # Generate the message using the dummy values
     test_record = _build_test_record()
@@ -36,12 +36,16 @@ def test_generate_metadata_create(*args):
     # Validate the messageId is present and in the correct format
     assert uuid4_regex.match(message_json['messageHeader']['messageId'])
 
+    assert message_json['messageHeader']['generator'] == 'dspace'
+
     # Validate the messageTimings are present and in the correct format
     assert parser.parse(message_json['messageHeader']['messageTimings']['publishedTimestamp'])
 
     # Validate the messageHistory is present and in the correct format
-    assert message_json['messageHeader']['messageHistory'][0]['machineAddress'] == '123.123.123.123'
-    assert parser.parse(message_json['messageHeader']['messageHistory'][0]['timestamp'])
+    message_history = message_json['messageHeader']['messageHistory'][0]
+    assert message_history['machineId'] == 'rdss-oai-pmh-adaptor-dspace'
+    assert message_history['machineAddress'] == '123.123.123.123'
+    assert parser.parse(message_history['timestamp'])
 
     # Validate the objectUuid is present and in the correct format
     assert uuid4_regex.match(message_json['messageBody']['objectUuid'])
@@ -76,11 +80,9 @@ def test_generate_metadata_create(*args):
 
 def _build_test_record():
     return {
-        'header': {
-            'identifier': 'test-eprints-record',
-            'datestamp': '2018-03-23T12:34:56'
-        },
-        'metadata': {
+        'identifier': 'test-eprints-record',
+        'datestamp': '2018-03-23T12:34:56',
+        'oai_dc': {
             'title': ['Test title'],
             'creator': ['Test creator'],
             'contributor': ['Test contributor'],
@@ -91,7 +93,10 @@ def _build_test_record():
             'date': ['2018-03-23T09:10:15'],
             'subject': ['Test subject'],
             'identifier': ['http://eprints.test/download/file.dat']
-        }
+        },
+        'file_locations': [
+            'http://eprints.test/download/file.dat'
+        ]
     }
 
 
