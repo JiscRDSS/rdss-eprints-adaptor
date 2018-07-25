@@ -64,12 +64,12 @@ class OAIPMHClient(object):
     def _extract_file_locations(self, record):
         file_locations = []
         if self.use_ore:
-            for l in record['ore']['link']:
+            for l in record['ore'].get('link', []):
                 relation = l.get('rel', '')
                 if relation == 'http://www.openarchives.org/ore/terms/aggregates':
                     file_locations.append(l.get('href', ''))
         else:
-            for identifier in record['oai_dc']['identifier']:
+            for identifier in record['oai_dc'].get('identifier'):
                 if identifier.startswith(('http://', 'https://')):
                     file_locations.append(identifier)
         return list(filter(None, file_locations))
