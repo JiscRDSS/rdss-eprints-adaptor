@@ -69,7 +69,7 @@ class OAIPMHClient(object):
                 if relation == 'http://www.openarchives.org/ore/terms/aggregates':
                     file_locations.append(l.get('href', ''))
         else:
-            for identifier in record['oai_dc'].get('identifier'):
+            for identifier in record['oai_dc'].get('identifier', []):
                 if identifier.startswith(('http://', 'https://')):
                     file_locations.append(identifier)
         return list(filter(None, file_locations))
