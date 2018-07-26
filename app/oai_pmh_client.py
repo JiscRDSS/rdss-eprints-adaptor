@@ -46,11 +46,11 @@ class OAIPMHClient(object):
         for k, v in records_a.items():
             merged_records[k] = {**v, **records_b[k]}
         return merged_records
-    
+
     def _filter_empty_records(self, records):
         """ Records that have been deleted will exist in the oai-pmh output, but will not have
             an `oai_dc` response. This filters them out. """
-        return {k:v for k, v in records.items() if v.get('oai_dc')}
+        return {k: v for k, v in records.items() if v.get('oai_dc')}
 
     def _structured_record(self, metadata_prefix, record):
         logging.info('Converting record [%s]', record[0].identifier())
