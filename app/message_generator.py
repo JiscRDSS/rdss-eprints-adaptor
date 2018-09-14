@@ -87,7 +87,7 @@ class MessageGenerator(object):
         if len(values) > 1:
             logging.warning('DC metadata [\'%s\'] has more than 1 value', key)
         return values[0]
-    
+
     def _unique_value_list_from_dc_metadata(self, dc_metadata, key):
         values = dc_metadata.get(key)
         if not values:
@@ -131,10 +131,10 @@ class MessageGenerator(object):
         return [_object_person_role(person, 21) for person in set(people)]
 
     def _extract_object_keywords(self, dc_metadata):
-        return self._unique_value_list_from_dc_metadata(dc_metadata, 'subject') 
+        return self._unique_value_list_from_dc_metadata(dc_metadata, 'subject')
 
     def _extract_object_category(self, dc_metadata):
-        return self._unique_value_list_from_dc_metadata(dc_metadata, 'subject') 
+        return self._unique_value_list_from_dc_metadata(dc_metadata, 'subject')
 
     def _doi_identifier(self, value):
         return {
@@ -143,7 +143,7 @@ class MessageGenerator(object):
         }
 
     def _extract_object_identifier_value(self, dc_metadata):
-        return [self._doi_identifier(_id) for _id in 
+        return [self._doi_identifier(_id) for _id in
                 self._unique_value_list_from_dc_metadata(dc_metadata, 'identifier')]
 
     def _extract_object_related_identifier(self, dc_metadata):
@@ -151,7 +151,7 @@ class MessageGenerator(object):
             'identifier': self._doi_identifier(rel),
             'relationType': 13
         } for rel in self._unique_value_list_from_dc_metadata(dc_metadata, 'relation')]
-        
+
     def _extract_object_organisation_role(self, dc_metadata):
         return [{
                 'organisation': {
@@ -159,7 +159,7 @@ class MessageGenerator(object):
                     'organisationName': publisher
                 },
                 'role': 5
-                } for publisher in 
+                } for publisher in
                 self._unique_value_list_from_dc_metadata(dc_metadata, 'publisher')]
 
     def _extract_object_files(self, s3_objects):
