@@ -159,14 +159,16 @@ class MessageGenerator(object):
         } for rel in self._unique_value_list_from_dc_metadata(dc_metadata, 'relation')]
 
     def _extract_object_organisation_role(self, dc_metadata):
+        publishers = self._unique_value_list_from_dc_metadata(dc_metadata, 'publisher')
+        if not publishers:
+            publishers = [self.organisation_name]
         return [{
                 'organisation': {
                     'organisationJiscId': self.jisc_id,
                     'organisationName': publisher
                 },
                 'role': 5
-                } for publisher in
-                self._unique_value_list_from_dc_metadata(dc_metadata, 'publisher')]
+                } for publisher in publishers]
 
     def _extract_object_files(self, s3_objects):
         return [{
