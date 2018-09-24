@@ -92,10 +92,16 @@ class MessageGenerator(object):
         return self._single_value_from_dc_metadata(dc_metadata, 'title')
 
     def _extract_object_description(self, dc_metadata):
-        return self._single_value_from_dc_metadata(dc_metadata, 'description')
+        description = self._single_value_from_dc_metadata(dc_metadata, 'description')
+        if not description:
+            description = "NOT FOUND"
+        return description
 
     def _extract_object_rights(self, dc_metadata):
-        return self._single_value_from_dc_metadata(dc_metadata, 'rights')
+        rights_statement = self._single_value_from_dc_metadata(dc_metadata, 'rights')
+        if not rights_statement:
+            rights_statement = "NOT FOUND"
+        return rights_statement
 
     def _extract_object_date(self, dc_metadata):
         return parser.parse(
