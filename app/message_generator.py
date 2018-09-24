@@ -101,13 +101,13 @@ class MessageGenerator(object):
     def _extract_object_description(self, dc_metadata):
         description = self._single_value_from_dc_metadata(dc_metadata, 'description')
         if not description:
-            description = "NOT FOUND"
+            description = 'NOT FOUND'
         return description
 
     def _extract_object_rights(self, dc_metadata):
         rights_statement = self._single_value_from_dc_metadata(dc_metadata, 'rights')
         if not rights_statement:
-            rights_statement = "NOT FOUND"
+            rights_statement = 'NOT FOUND'
         return rights_statement
 
     def _extract_object_date(self, dc_metadata):
