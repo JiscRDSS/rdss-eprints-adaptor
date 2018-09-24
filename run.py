@@ -13,7 +13,7 @@ from app import MessageGenerator
 from app import MessageValidator
 from app import PoisonPill
 from app import S3Client
-from datetime import datetime
+import datetime
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -51,10 +51,10 @@ def main():
     s3_client = _initialise_s3_client(settings)
 
     # Query DynamoDB for the high watermark. If it exists, use that, otherwise this is probably a
-    # "first run", so set the watermark to now.
+    # "first run", so set the watermark to a date in the past to catch all records. 
     start_timestamp = dynamodb_client.fetch_high_watermark()
     if start_timestamp is None:
-        start_timestamp = datetime.now()
+        start_timestamp = datetime.datetime(1990,1,1,0,0)
         dynamodb_client.update_high_watermark(start_timestamp)
 
     flow_limit = int(settings['OAI_PMH_ADAPTOR_FLOW_LIMIT'])
