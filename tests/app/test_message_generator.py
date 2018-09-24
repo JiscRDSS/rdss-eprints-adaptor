@@ -54,8 +54,12 @@ def test_generate_metadata_create(*args):
     assert message_json['messageBody']['objectTitle'] == 'Test title'
 
     # Validate the objectPersonRole is present and in the correct format
-    assert message_json['messageBody']['objectPersonRole'][0]['person'][
-        'personGivenNames'] == 'Test creator'
+    name_1 = message_json['messageBody']['objectPersonRole'][0]['person']['personGivenNames']
+    name_2 = message_json['messageBody']['objectPersonRole'][1]['person']['personGivenNames']
+    names = [name_1, name_2]
+    
+    assert 'Test creator' in names
+    assert 'Test contributor' in names
 
     # Validate the objectDate is present and in the correct format
     assert parser.parse(message_json['messageBody']['objectDate'][0]['dateValue'])
