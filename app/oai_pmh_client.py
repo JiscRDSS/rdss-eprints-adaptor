@@ -33,18 +33,19 @@ class OAIPMHClient(object):
         return sorted(records.values(), key=lambda k: k['datestamp'])
 
     def _fetch_records_by_prefix_from(self, metadata_prefix, from_datetime, until_datetime=None):
-        logging.info('Querying for %s records from [%s]', metadata_prefix, from_datetime)
         try:
             if not until_datetime:
+                logging.info('Querying for %s records from [%s]', metadata_prefix, from_datetime)
                 # Fetch all records since the given from_datetime parameter.
                 records = self.client.listRecords(
                     metadataPrefix=metadata_prefix, from_=from_datetime)
                 logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
             else:
+                logging.info('Querying for %s records from [%s] to [%s]', metadata_prefix, from_datetime, until_datetime)
                 # Fetch all records between the given from_datetime and the given until_datetime
                 records = self.client.listRecords(
                     metadataPrefix=metadata_prefix, from_=from_datetime, until=until_datetime)
-                logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
+                logging.info('Got %s records between [%s] and [%s]', metadata_prefix, from_datetime, until_datetime)
 
             if not records:
                 return []

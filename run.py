@@ -65,10 +65,11 @@ def main():
         start_timestamp = datetime.datetime(1990, 1, 1, 0, 0)
         dynamodb_client.update_high_watermark(start_timestamp)
 
-    today = datetime.datetime.today().date()
+    today = datetime.datetime.today()
     records = []
     while not records:
-        if start_timestamp.date() == today:
+        if start_timestamp.date() == today.date():
+            logging.info('Start timestamp %s is today %s', start_timestamp.date(), today.date())
             records = get_records(start_timestamp)
             break
         else:
