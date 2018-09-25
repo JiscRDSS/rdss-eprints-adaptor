@@ -69,10 +69,6 @@ def main():
     today = datetime.datetime.today().date()
     records = []
     while not records:
-        print("======================")
-        print(type(start_timestamp))
-        print(start_timestamp)
-        print("======================")
         if start_timestamp.date() == today:
             records = get_records(start_timestamp)
             break

@@ -40,7 +40,11 @@ class OAIPMHClient(object):
                 # Fetch all records between the given from_datetime and the given until_datetime
                 records = self.client.listRecords(metadataPrefix=metadata_prefix, from_=from_datetime, until=until_datetime)
                 logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
-            return dict(self._structured_record(metadata_prefix, r) for r in records)
+
+            if not records:
+                return []
+            else:
+                return dict(self._structured_record(metadata_prefix, r) for r in records)
         except NoRecordsMatchError:
             # Annoyingly, the client throws an exception if no records are found...
             logging.info('No %s records since [%s]', metadata_prefix, from_datetime)
