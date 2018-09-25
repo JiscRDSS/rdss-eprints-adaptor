@@ -22,8 +22,11 @@ class OAIPMHClient(object):
     def fetch_records_from(self, from_datetime, until_datetime=None):
         records = self._fetch_records_by_prefix_from('oai_dc', from_datetime, until_datetime)
         if self.use_ore:
-            oai_ore_records = self._fetch_records_by_prefix_from('ore', from_datetime, until_datetime)
+            oai_ore_records = self._fetch_records_by_prefix_from(
+                'ore', from_datetime, until_datetime)
             records = self._merge_records(records, oai_ore_records)
+        if not records:
+            return []
         records = self._filter_empty_records(records)
         for r in records.values():
             r['file_locations'] = self._extract_file_locations(r)
@@ -34,11 +37,13 @@ class OAIPMHClient(object):
         try:
             if not until_datetime:
                 # Fetch all records since the given from_datetime parameter.
-                records = self.client.listRecords(metadataPrefix=metadata_prefix, from_=from_datetime)
+                records = self.client.listRecords(
+                    metadataPrefix=metadata_prefix, from_=from_datetime)
                 logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
             else:
                 # Fetch all records between the given from_datetime and the given until_datetime
-                records = self.client.listRecords(metadataPrefix=metadata_prefix, from_=from_datetime, until=until_datetime)
+                records = self.client.listRecords(
+                    metadataPrefix=metadata_prefix, from_=from_datetime, until=until_datetime)
                 logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
 
             if not records:

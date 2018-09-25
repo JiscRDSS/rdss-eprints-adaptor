@@ -58,7 +58,6 @@ def main():
         # Filter out records that have already been successfully processed
         return itertools.islice(filter(_record_success_filter, records), flow_limit)
 
-
     # Query DynamoDB for the high watermark. If it exists, use that, otherwise this is probably a
     # "first run", so set the watermark to a date in the past to catch all records.
     start_timestamp = dynamodb_client.fetch_high_watermark()

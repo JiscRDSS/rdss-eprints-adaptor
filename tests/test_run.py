@@ -61,7 +61,7 @@ def test_main(_initialise_s3_client, _initialise_message_validator, _initialise_
 
     # Validate that the appropriate calls were made
     mock_dynamodb_client.fetch_high_watermark.assert_called_once_with()
-    #mock_oai_pmh_client.fetch_records_from.assert_called_once_with('1970-01-01T00:00:00')
+    # mock_oai_pmh_client.fetch_records_from.assert_called_once_with('1970-01-01T00:00:00')
     mock_dynamodb_client.fetch_processed_status.assert_called_once_with('test-identifier')
     mock_download_client.download_file.assert_called_once_with(
         'http://eprints.test/download/file.dat'
@@ -128,7 +128,8 @@ def _mock_dynamodb_client():
         'rdss-eprints-adaptor-processed-test',
         'rdss-eprints-adaptor-watermark-test'
     )
-    mock_dynamodb_client.fetch_high_watermark = MagicMock(return_value=datetime.datetime(1970, 1, 1, 0, 0, 0))
+    mock_dynamodb_client.fetch_high_watermark = MagicMock(
+        return_value=datetime.datetime(1970, 1, 1, 0, 0, 0))
     mock_dynamodb_client.update_high_watermark = MagicMock(return_value=None)
     mock_dynamodb_client.fetch_processed_status = MagicMock(return_value=None)
     mock_dynamodb_client.update_processed_record = MagicMock(return_value=None)
