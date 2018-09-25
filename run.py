@@ -74,7 +74,7 @@ def main():
             break
         else:
             until_timestamp = start_timestamp + datetime.timedelta(days=1)
-            records = get_records(start_timestamp, until_timestamp)
+            records = list(get_records(start_timestamp, until_timestamp))
             start_timestamp = until_timestamp
 
     for record in records:
