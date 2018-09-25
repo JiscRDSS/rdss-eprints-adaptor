@@ -43,7 +43,8 @@ class OAIPMHClient(object):
                 logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
             else:
                 logging.info(
-                    'Querying for %s records from [%s] to [%s]', metadata_prefix, from_datetime, until_datetime)
+                    'Querying for %s records from [%s] to [%s]', metadata_prefix,
+                    from_datetime, until_datetime)
                 # Fetch all records between the given from_datetime and the given until_datetime
                 records = self.client.listRecords(
                     metadataPrefix=metadata_prefix, from_=from_datetime, until=until_datetime)
