@@ -62,7 +62,7 @@ def main():
     # "first run", so set the watermark to a date in the past to catch all records.
     start_timestamp = dynamodb_client.fetch_high_watermark()
     if start_timestamp is None:
-        start_timestamp = datetime.datetime(1990, 1, 1, 0, 0)
+        start_timestamp = datetime.datetime(2000, 1, 1, 0, 0)
         dynamodb_client.update_high_watermark(start_timestamp)
 
     today = datetime.datetime.today()
