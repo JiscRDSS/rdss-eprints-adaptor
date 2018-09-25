@@ -69,7 +69,7 @@ class S3Client(object):
             'file_path': object_key,
             'file_size': response['ContentLength'],
             'file_checksum': md5_checksum,
-            'download_url': 'https://{}.s3.amazonaws.com/{}'.format(self.bucket_name, object_key)
+            'download_url': 's3://{}/{}'.format(self.bucket_name, object_key)
         }
 
     def _build_object_key(self, remote_url):
