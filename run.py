@@ -50,6 +50,15 @@ def main():
     global s3_client
     s3_client = _initialise_s3_client(settings)
 
+    def get_records(start_timestamp, until_timestamp=None):
+        """ """
+        flow_limit = int(settings['OAI_PMH_ADAPTOR_FLOW_LIMIT'])
+        # Query OAI endpoint for all the records since the high watermark.
+        records = oai_pmh_client.fetch_records_from(start_timestamp, until_timestamp)
+        # Filter out records that have already been successfully processed
+        return itertools.islice(filter(_record_success_filter, records), flow_limit)
+
+
     # Query DynamoDB for the high watermark. If it exists, use that, otherwise this is probably a
     # "first run", so set the watermark to a date in the past to catch all records.
     start_timestamp = dynamodb_client.fetch_high_watermark()
@@ -57,14 +66,22 @@ def main():
         start_timestamp = datetime.datetime(1990, 1, 1, 0, 0)
         dynamodb_client.update_high_watermark(start_timestamp)
 
-    flow_limit = int(settings['OAI_PMH_ADAPTOR_FLOW_LIMIT'])
+    today = datetime.datetime.today().date()
+    records = []
+    while not records:
+        print("======================")
+        print(type(start_timestamp))
+        print(start_timestamp)
+        print("======================")
+        if start_timestamp.date() == today:
+            records = get_records(start_timestamp)
+            break
+        else:
+            until_timestamp = start_timestamp + datetime.timedelta(days=1)
+            records = get_records(start_timestamp, until_timestamp)
+            start_timestamp = until_timestamp
 
-    # Query OAI endpoint for all the records since the high watermark.
-    records = oai_pmh_client.fetch_records_from(start_timestamp)
-    # Filter out records that have already been successfully processed
-    filtered_records = itertools.islice(filter(_record_success_filter, records), flow_limit)
-
-    for record in filtered_records:
+    for record in records:
         logging.info('Processing record [%s]', record)
         _process_record(record)
 
