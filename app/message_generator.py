@@ -3,7 +3,7 @@ import uuid
 
 from ec2_metadata import ec2_metadata
 from jinja2 import select_autoescape, Environment, PackageLoader
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil import parser
 
 
@@ -14,7 +14,7 @@ class MessageGenerator(object):
         self.organisation_name = organisation_name
         self.oai_pmh_provider = oai_pmh_provider
         self.env = self._initialise_environment()
-        self.now = datetime.now().isoformat()
+        self.now = datetime.now(timezone.utc).astimezone().isoformat()
 
     def _initialise_environment(self):
         logging.info('Loading templates in directory [templates] from package [app]')
