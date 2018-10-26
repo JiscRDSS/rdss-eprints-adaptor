@@ -14,7 +14,7 @@ class MessageGenerator(object):
         self.organisation_name = organisation_name
         self.oai_pmh_provider = oai_pmh_provider
         self.env = self._initialise_environment()
-        self.now = datetime.now(timezone.utc).astimezone().isoformat()
+        self.now = datetime.now(timezone.utc).isoformat()
 
     def _initialise_environment(self):
         logging.info('Loading templates in directory [templates] from package [app]')
@@ -26,6 +26,12 @@ class MessageGenerator(object):
                 default_for_string=True,
             )
         )
+
+    def _parse_datetime_with_tz(self, datetime_string):
+        parsed_dt = parser.parse(datetime_string)
+        if not parsed_dt.tzinfo:
+            parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+        return parsed_dt.isoformat()
 
     def generate_metadata_create(self, record, s3_objects):
         # Generate the message by building up a dict of values and passing this into Jinja2. The
@@ -115,7 +121,7 @@ class MessageGenerator(object):
         if not date_string:
             return None
         else:
-            return parser.parse(date_string).isoformat()
+            return self._parse_datetime_with_tz(date_string)
 
     def _extract_object_person_roles(self, dc_metadata):
         def _object_person_role(name, role_enum):
