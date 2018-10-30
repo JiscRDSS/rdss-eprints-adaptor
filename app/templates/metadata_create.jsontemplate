@@ -1,0 +1,159 @@
+{
+  "messageHeader": {
+    "messageId": "{{ messageHeader.messageId }}",
+    "messageClass": "Command",
+    "messageType": "MetadataCreate",
+    "messageTimings": {
+      "publishedTimestamp": "{{ messageHeader.messageTimings.publishedTimestamp }}"
+    },
+    "messageSequence": {
+      "sequence": "{{ messageHeader.messageSequence.sequence }}",
+      "position": 1,
+      "total": 1
+    },
+    "messageHistory": [
+      {
+        "machineId": "{{ messageHeader.messageHistory.machineId }}",
+        "machineAddress": "{{ messageHeader.messageHistory.machineAddress }}",
+        "timestamp": "{{ messageHeader.messageHistory.timestamp }}"
+      }
+    ],
+    "version": "3.0.0",
+    "generator": "{{ messageHeader.generator }}"
+  },
+  "messageBody": {
+    "objectUuid": "{{ messageBody.objectUuid }}",
+    "objectTitle": {{ messageBody.objectTitle|tojson|safe }},
+    "objectPersonRole": [
+      {% for objectPersonRole in messageBody.objectPersonRole %}
+      {
+        "person": {
+          "personUuid": "{{ objectPersonRole.person.personUuid }}",
+          "personIdentifier": [
+            {
+              "personIdentifierValue": "not present",
+              "personIdentifierType": 2
+            }
+          ],
+          "personGivenNames": {{ objectPersonRole.person.personGivenName|tojson|safe }},
+          "personFamilyNames": "not present",
+          "personOrganisationUnit": {
+            "organisationUnitUuid": "{{ objectPersonRole.person.personOrganisationUnit.organisationUnitUuid }}",
+            "organisationUnitName": "not present",
+            "organisation": {
+              "organisationJiscId": {{ objectPersonRole.person.personOrganisationUnit.organisation.organisationJiscId }},
+              "organisationName": {{ objectPersonRole.person.personOrganisationUnit.organisation.organisationName|tojson|safe }},
+              "organisationType": 11,
+              "organisationAddress": "not present"
+            }
+          }
+        },
+        "role": {{ objectPersonRole.role }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectDescription": {{ messageBody.objectDescription|tojson|safe }},
+    "objectRights": {
+      "rightsStatement": [
+        {{ messageBody.objectRights.rightsStatement|tojson|safe }}
+      ],
+      "licence": [
+        {
+          "licenceIdentifier": "not present"
+        }
+      ],
+      "access": [
+        {
+          "accessType": 1
+        }
+      ]
+    },
+    "objectDate": [
+      {
+        "dateValue": "{{ messageBody.objectDate.dateValue }}",
+        "dateType": {{ messageBody.objectDate.dateType }}
+      }
+    ],
+    "objectKeywords": [
+      {% for objectKeywords in messageBody.objectKeywords %}
+      {{ objectKeywords|tojson|safe }}{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectCategory": [
+      {% for objectCategory in messageBody.objectCategory %}
+      {{ objectCategory|tojson|safe }}{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectResourceType": 25,
+    "objectValue": 1,
+    "objectIdentifier": [
+      {% for objectIdentifier in messageBody.objectIdentifier %}
+      {
+        "identifierValue": {{ objectIdentifier.identifierValue|tojson|safe }},
+        "identifierType": {{ objectIdentifier.identifierType }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectRelatedIdentifier": [
+      {% for objectRelatedIdentifier in messageBody.objectRelatedIdentifier %}
+      {
+        "identifier": {
+          "identifierValue": {{ objectRelatedIdentifier.identifier.identifierValue|tojson|safe }},
+          "identifierType": {{ objectRelatedIdentifier.identifier.identifierType }}
+        },
+        "relationType": {{ objectRelatedIdentifier.relationType }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectOrganisationRole": [
+      {% for objectOrganisationRole in messageBody.objectOrganisationRole %}
+      {
+        "organisation": {
+          "organisationJiscId": {{ objectOrganisationRole.organisation.organisationJiscId }},
+          "organisationName": {{ objectOrganisationRole.organisation.organisationName|tojson|safe }},
+          "organisationType": 11,
+          "organisationAddress": "not present"
+        },
+        "role": {{ objectOrganisationRole.role }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "objectFile": [
+      {% for objectFile in messageBody.objectFile %}
+      {
+        "fileUuid": "{{ objectFile.fileUuid }}",
+        "fileIdentifier": {{ objectFile.fileIdentifier|tojson|safe }},
+        "fileName": {{ objectFile.fileName|tojson|safe }},
+        "fileSize": {{ objectFile.fileSize }},
+        "fileChecksum": [
+          {
+            "checksumUuid": "{{ objectFile.fileChecksum.checksumUuid }}",
+            "checksumType": 1,
+            "checksumValue": "{{ objectFile.fileChecksum.checksumValue }}"
+          }
+        ],
+        "fileCompositionLevel": "not present",
+        "fileDateModified": [
+          "1970-01-01T00:00:00"
+        ],
+        "fileUse": 1,
+        "filePreservationEvent": [
+          {
+            "preservationEventValue": "not present",
+            "preservationEventType": 3
+          }
+        ],
+        "fileUploadStatus": 2,
+        "fileStorageStatus": 1,
+        "fileStorageLocation": {{ objectFile.fileStorageLocation|tojson|safe }},
+        "fileStoragePlatform": {
+          "storagePlatformUuid": "{{ objectFile.fileStoragePlatform.storagePlatformUuid }}",
+          "storagePlatformName": "AWS",
+          "storagePlatformType": 1,
+          "storagePlatformCost": "not present"
+        }
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
