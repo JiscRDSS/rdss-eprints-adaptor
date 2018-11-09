@@ -22,7 +22,7 @@ class S3Client(object):
         object_key = self._build_object_key(remote_url)
 
         # Push the file into S3. By using the upload_fileobj method, this upload will be executed
-        # using multipart uplaods.
+        # using multipart uploads.
         logging.info(
             'Pushing file [%s] to S3 Bucket [%s] with key [%s]',
             file_path,
