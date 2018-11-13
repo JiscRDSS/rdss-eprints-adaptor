@@ -1,0 +1,135 @@
+{
+"objectUuid": "{{ objectUuid }}",
+"objectTitle": {{ objectTitle|tojson|safe }},
+"objectPersonRole": [
+  {% for personRole in objectPersonRole %}
+  {
+    "person": {
+      "personUuid": "{{ personRole.person.personUuid }}",
+      "personIdentifier": [
+        {
+          "personIdentifierValue": "not present",
+          "personIdentifierType": 2
+        }
+      ],
+      "personGivenNames": {{ personRole.person.personGivenName|tojson|safe }},
+      "personFamilyNames": "not present",
+      "personOrganisationUnit": {
+        "organisationUnitUuid": "{{ personRole.person.personOrganisationUnit.organisationUnitUuid }}",
+        "organisationUnitName": "not present",
+        "organisation": {
+          "organisationJiscId": {{ personRole.person.personOrganisationUnit.organisation.organisationJiscId }},
+          "organisationName": {{ personRole.person.personOrganisationUnit.organisation.organisationName|tojson|safe }},
+          "organisationType": 11,
+          "organisationAddress": "not present"
+        }
+      }
+    },
+    "role": {{ personRole.role }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+],
+"objectDescription": {{ objectDescription|tojson|safe }},
+"objectRights": {
+  "rightsStatement": [
+    {{ objectRights.rightsStatement|tojson|safe }}
+  ],
+  "licence": [
+    {
+      "licenceIdentifier": "not present"
+    }
+  ],
+  "access": [
+    {
+      "accessType": 1
+    }
+  ]
+},
+"objectDate": [
+  {
+    "dateValue": "{{ objectDate.dateValue }}",
+    "dateType": {{ objectDate.dateType }}
+  }
+],
+"objectKeywords": [
+  {% for keyword in objectKeywords %}
+  {{ keywords|tojson|safe }}{% if not loop.last %},{% endif %}
+  {% endfor %}
+],
+"objectCategory": [
+  {% for category in objectCategory %}
+  {{ category|tojson|safe }}{% if not loop.last %},{% endif %}
+  {% endfor %}
+],
+"objectResourceType": 25,
+"objectValue": 1,
+"objectIdentifier": [
+  {% for identifier in objectIdentifier %}
+  {
+    "identifierValue": {{ identifier.identifierValue|tojson|safe }},
+    "identifierType": {{ identifier.identifierType }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+],
+"objectRelatedIdentifier": [
+  {% for relatedIdentifier in objectRelatedIdentifier %}
+  {
+    "identifier": {
+      "identifierValue": {{ relatedIdentifier.identifier.identifierValue|tojson|safe }},
+      "identifierType": {{ relatedIdentifier.identifier.identifierType }}
+    },
+    "relationType": {{ relatedIdentifier.relationType }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+],
+"objectOrganisationRole": [
+  {% for organisationRole in objectOrganisationRole %}
+  {
+    "organisation": {
+      "organisationJiscId": {{ organisationRole.organisation.organisationJiscId }},
+      "organisationName": {{ organisationRole.organisation.organisationName|tojson|safe }},
+      "organisationType": 11,
+      "organisationAddress": "not present"
+    },
+    "role": {{ organisationRole.role }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+],
+"objectFile": [
+  {% for file in objectFile %}
+  {
+    "fileUuid": "{{ file.fileUuid }}",
+    "fileIdentifier": {{ file.fileIdentifier|tojson|safe }},
+    "fileName": {{ file.fileName|tojson|safe }},
+    "fileSize": {{ file.fileSize }},
+    "fileChecksum": [
+      {
+        "checksumUuid": "{{ file.fileChecksum.checksumUuid }}",
+        "checksumType": 1,
+        "checksumValue": "{{ file.fileChecksum.checksumValue }}"
+      }
+    ],
+    "fileCompositionLevel": "not present",
+    "fileDateModified": [
+      "1970-01-01T00:00:00.000000+00:00"
+    ],
+    "fileUse": 1,
+    "filePreservationEvent": [
+      {
+        "preservationEventValue": "not present",
+        "preservationEventType": 3
+      }
+    ],
+    "fileUploadStatus": 2,
+    "fileStorageStatus": 1,
+    "fileStorageLocation": {{ file.fileStorageLocation|tojson|safe }},
+    "fileStoragePlatform": {
+      "storagePlatformUuid": "{{ file.fileStoragePlatform.storagePlatformUuid }}",
+      "storagePlatformName": "AWS",
+      "storagePlatformType": 1,
+      "storagePlatformCost": "not present"
+    }
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+]
+}
