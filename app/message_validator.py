@@ -101,7 +101,7 @@ class MessageValidator(object):
         )
         error_strings = []
         # Validate the JSON payload against the JSON schema
-        for error in self.message_validator.iter_errors(message):
+        for error in self._message_validator.iter_errors(message):
             error_strings.append('{}: {}'.format('.'.join(
                 map(str, error.path)), error.message))
         return error_strings

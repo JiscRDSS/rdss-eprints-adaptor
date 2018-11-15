@@ -1,7 +1,7 @@
 import pytest
+import json
 
 from app.message_validator import MessageValidator
-from jsonschema import ValidationError
 
 
 def test_validate_message_valid():
@@ -12,22 +12,23 @@ def test_validate_message_valid():
     test_message = _get_test_message('tests/app/data/rdss-message.json')
 
     # Validate the message
-    message_validator.validate_message(test_message)
+    errors = message_validator.message_errors(test_message)
+
+    assert len(errors) == 0
 
 
 def test_validate_message_invalid():
-    # Validate that this call to raises a ValidationError
-    with pytest.raises(ValidationError):
-        # Create the message validator we'll be testing against
-        message_validator = MessageValidator('3.0.1')
+    # Create the message validator we'll be testing against
+    message_validator = MessageValidator('3.0.1')
 
-        # Get a handle on the test JSON message
-        test_message = _get_test_message('tests/app/data/rdss-message-invalid.json')
+    # Get a handle on the test JSON message
+    test_message = _get_test_message('tests/app/data/rdss-message-invalid.json')
 
-        # Validate the message
-        message_validator.validate_message(test_message)
+    # Validate the message
+    errors = message_validator.message_errors(test_message)
 
+    assert len(errors) == 1
 
 def _get_test_message(file_path):
-    with open(file_path, 'rb') as file:
-        return file.read()
+    with open(file_path, 'rb') as f_in:
+        return json.load(f_in)
