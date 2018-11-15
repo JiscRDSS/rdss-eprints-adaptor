@@ -2,8 +2,7 @@ import boto3
 import json
 import time
 
-from app import KinesisClient
-from app import PoisonPill
+from app.kinesis_client import KinesisClient, PoisonPill
 from moto import mock_kinesis
 
 

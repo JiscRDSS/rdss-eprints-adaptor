@@ -53,7 +53,7 @@
 ],
 "objectKeywords": [
   {% for keyword in objectKeywords %}
-  {{ keywords|tojson|safe }}{% if not loop.last %},{% endif %}
+  {{ keyword|tojson|safe }}{% if not loop.last %},{% endif %}
   {% endfor %}
 ],
 "objectCategory": [

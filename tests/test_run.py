@@ -3,14 +3,12 @@ import os
 import run
 import datetime
 
-from app import OAIPMHClient
-from app import DownloadClient
-from app import DynamoDBClient
-from app import KinesisClient
+from app.oai_pmh_client import OAIPMHClient
+from app.download_client import DownloadClient
+from app.kinesis_client import KinesisClient, PoisonPill
 from app import MessageGenerator
 from app import MessageValidator
-from app import PoisonPill
-from app import S3Client
+from app.s3_client import S3Client
 from dateutil import parser
 from mock import MagicMock, patch
 

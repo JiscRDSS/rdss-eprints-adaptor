@@ -1,9 +1,9 @@
 import json
 import logging
 import os
+import jsonschema
 
-from app import DownloadClient
-from jsonschema import validate, FormatChecker, RefResolver
+from app.download_client import DownloadClient
 
 MODEL_SCHEMA_BASE_URL = 'https://raw.githubusercontent.com/JiscRDSS/rdss-message-api-specificatio' \
                         'n/{api_version}/schemas/{schema_document}'
@@ -43,7 +43,19 @@ class MessageValidator(object):
         self.api_version = api_version
         self.download_client = DownloadClient()
         self.model_schema_mappings = self._download_model_schemas()
-        self.message_schema_file_path = self._download_message_schema()
+        self.message_schema = self._get_json(self._download_message_schema())
+
+        validator_cls = jsonschema.validators.validator_for(self.message_schema)
+        self._message_validator = validator_cls(
+            self.message_schema,
+            resolver=jsonschema.RefResolver('', {},
+                                            store={
+                schema_id: self._get_json(file_path)
+                for schema_id, file_path in self.model_schema_mappings
+            }
+            ),
+            format_checker=jsonschema.FormatChecker()
+        )
 
     def _download_model_schemas(self):
         model_schema_mappings = []
@@ -81,27 +93,18 @@ class MessageValidator(object):
         )
         return message_schema_file
 
-    def validate_message(self, message):
+    def message_errors(self, message):
         logging.info(
             'Validating message [%s] against API specification version [%s]',
             message,
             self.api_version
         )
-
+        error_strings = []
         # Validate the JSON payload against the JSON schema
-        validate(
-            json.loads(message),
-            self._get_json(self.message_schema_file_path),
-            resolver=RefResolver(
-                '',
-                {},
-                store={
-                    schema_id: self._get_json(file_path)
-                    for schema_id, file_path in self.model_schema_mappings
-                }
-            ),
-            format_checker=FormatChecker()
-        )
+        for error in self.message_validator.iter_errors(message):
+            error_strings.append('{}: {}'.format('.'.join(
+                map(str, error.path)), error.message))
+        return error_strings
 
     def _get_json(self, file_path):
         with open(file_path) as json_data:

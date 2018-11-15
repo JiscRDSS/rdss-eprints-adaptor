@@ -1,8 +1,9 @@
 import logging
+import datetime
+import dateutil
 import uuid
+import json
 from jinja2 import select_autoescape, Environment, PackageLoader
-from datetime import datetime, timezone
-from dateutil import parser
 
 
 class RDSSCDMRemapper(object):
@@ -24,9 +25,9 @@ class RDSSCDMRemapper(object):
         )
 
     def _parse_datetime_with_tz(self, datetime_string):
-        parsed_dt = parser.parse(datetime_string)
+        parsed_dt = dateutil.parser.parse(datetime_string)
         if not parsed_dt.tzinfo:
-            parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+            parsed_dt = parsed_dt.replace(tzinfo=datetime.timezone.utc)
         return parsed_dt.isoformat()
 
     def _single_value_from_dc_metadata(self, dc_metadata, key):
@@ -143,7 +144,7 @@ class RDSSCDMRemapper(object):
         template = self.env.get_template(template_name)
         logging.info('Rendering template [%s] using record [%s]', template_name, record)
         dc_metadata = record['oai_dc']
-        return template.render({
+        return json.loads(template.render({
             'objectUuid': uuid.uuid4(),
             'objectTitle': self._extract_object_title(dc_metadata),
             'objectPersonRole': self._extract_object_person_roles(dc_metadata),
@@ -161,4 +162,4 @@ class RDSSCDMRemapper(object):
             'objectRelatedIdentifier': self._extract_object_related_identifier(dc_metadata),
             'objectOrganisationRole': self._extract_object_organisation_role(dc_metadata),
             'objectFile': self._extract_object_files(s3_objects)
-        })
+        }))

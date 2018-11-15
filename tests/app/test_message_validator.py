@@ -1,6 +1,6 @@
 import pytest
 
-from app import MessageValidator
+from app.message_validator import MessageValidator
 from jsonschema import ValidationError
 
 

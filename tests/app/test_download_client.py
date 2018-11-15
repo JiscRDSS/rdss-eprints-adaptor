@@ -1,7 +1,7 @@
 import os.path
 import requests_mock
 
-from app import DownloadClient
+from app.download_client import DownloadClient
 
 
 @requests_mock.mock()

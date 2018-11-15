@@ -1,13 +1,17 @@
 import datetime
+import dateutil
 import os
 import itertools
 import logging
 
 from app.oai_pmh_client import OAIPMHClient
+from app.oai_pmh_record import OAIPMHRecord
 from app.state_storage import AdaptorStateStore, RecordState
-from app.kinesis_client import KinesisClient
+from app.kinesis_client import KinesisClient, PoisonPill
 from app.s3_client import S3Client
 from app.rdss_cdm_remapper import RDSSCDMRemapper
+from app.message_validator import MessageValidator
+from app.messages import MetadataCreate, MetadataUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +29,7 @@ class OAIPMHAdaptor(object):
                  oai_pmh_endpoint_url,
                  oai_pmh_provider,
                  flow_limit,
-                 rdss_message_api_specification_version,
+                 message_api_version,
                  watermark_table_name,
                  processed_table_name,
                  output_stream,
@@ -52,7 +56,7 @@ class OAIPMHAdaptor(object):
             oai_pmh_provider
         )
         self.message_validator = MessageValidator(
-            rdss_message_api_specification_version
+            message_api_version
         )
         self.flow_limit = int(flow_limit)
 
@@ -112,37 +116,46 @@ class OAIPMHAdaptor(object):
 
     def _process_record(self, record):
         logging.info('Processing record [%s]', record['identifier'])
-        s3_objects = self._push_files_to_s3(record)
-        oai_pmh_record = OAIPMHRecord(self.rdss_cdm_remapper, record, s3_objects)
+        try:
+            s3_objects = self._push_files_to_s3(record)
+            oai_pmh_record = OAIPMHRecord(self.rdss_cdm_remapper, record, s3_objects)
 
-        record_state = RecordState.create_from_record(oai_pmh_record)
-        prev_record_state = self.state_store.get_record_state(
-            record.oai_pmh_identifier)
+            record_state = RecordState.create_from_record(oai_pmh_record)
+            prev_record_state = self.state_store.get_record_state(
+                record.oai_pmh_identifier)
 
-        if not prev_record_state.message_body or not prev_record_state.successful_create:
-            message_creator = MetadataCreate(self.instance_id)
-            message = message_creator.generate(
-                oai_pmh_record.rdss_canonical_metadata
-            )
-
-        elif record_state != prev_record_state:
-            message_creator = MetadataUpdate(self.instance_id)
-            message = message_creator.generate(
-                oai_pmh_record.versioned_rdss_canonical_metadata(
-                    prev_record_state.object_uuid
+            if not prev_record_state.message_body or not prev_record_state.successful_create:
+                message_creator = MetadataCreate(self.message_validator, self.instance_id)
+                message = message_creator.generate(
+                    oai_pmh_record.rdss_canonical_metadata
                 )
-            )
-        else:
-            # At present this won't occur due to the generation of UUID's for
-            # each new message.
-            logger.info(
-                'Skipping %s as no change in RDSS CDM manifestation of record.', oai_pmh_record.oai_pmh_identifier)
 
-        if message.is_valid:
-            self.kinesis_client.put_message_on_queue(message)
-        else:
-            self.kinesis_client.put_invalid_message_on_queue(message)
-        record_state.update_with_message(message)
+            elif record_state != prev_record_state:
+                message_creator = MetadataUpdate(self.message_validator, self.instance_id)
+                message = message_creator.generate(
+                    oai_pmh_record.versioned_rdss_canonical_metadata(
+                        prev_record_state.object_uuid
+                    )
+                )
+            else:
+                # At present this won't occur due to the generation of UUID's for
+                # each new message.
+                logger.info(
+                    'Skipping %s as no change in RDSS CDM manifestation of record.',
+                    oai_pmh_record.oai_pmh_identifier)
+
+            if message.is_invalid:
+                self.kinesis_client.put_invalid_message_on_queue(message)
+            else:
+                self.kinesis_client.put_message_on_queue(message)
+
+            record_state.update_with_message(message)
+        except Exception as e:
+            record_state = RecordState.create_from_error(
+                record['identifier'],
+                dateutil.parser.parse(record['datestamp']),
+                str(e)
+            )
         self._update_adaptor_state(record_state)
 
     def _update_adaptor_state(self, latest_record_state):

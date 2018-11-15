@@ -51,7 +51,7 @@ def main():
             oai_pmh_endpoint_url=env_vars['OAI_PMH_ENDPOINT_URL'],
             oai_pmh_provider=env_vars['OAI_PMH_PROVIDER'],
             flow_limit=env_vars['OAI_PMH_ADAPTOR_FLOW_LIMIT'],
-            rdss_message_api_specification_version=env_vars['RDSS_MESSAGE_API_SPECIFICATION_VERSION'],
+            message_api_version=env_vars['RDSS_MESSAGE_API_SPECIFICATION_VERSION'],
             watermark_table_name=env_vars['DYNAMODB_WATERMARK_TABLE_NAME'],
             processed_table_name=env_vars['DYNAMODB_PROCESSED_TABLE_NAME'],
             output_stream=env_vars['OUTPUT_KINESIS_STREAM_NAME'],

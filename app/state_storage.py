@@ -144,6 +144,17 @@ class RecordState(object):
         }
         return cls(record_json)
 
+    @classmethod
+    def create_from_error(cls, identifier, update_date, error_string):
+        record_json = {
+            'Identifier': identifier,
+            'LastUpdated': update_date.isoformat(),
+            'Message': {},
+            'Status': 'Error',
+            'Reason': error_string
+        }
+        return cls(record_json)
+
     def update_with_message(self, message):
         self.json.update({
             'Message': message.as_json,
@@ -153,11 +164,12 @@ class RecordState(object):
 
     @property
     def message_body(self):
-        """ Extract and return the messageBody from the last generated message for this record.
-            Used to determine whether the modification of the record in OAI-PMH provider has changed the
-            RDSS CDM manifestation of a record and whether an UPDATE message should be generated.
-            If no messageBody then will return None to indicate a CREATE message should be
-            generated.
+        """ Extract and return the messageBody from the last generated message
+            for this record. Used to determine whether the modification of the
+            record in OAI-PMH provider has changed the RDSS CDM manifestation
+            of a record and whether an UPDATE message should be generated. If
+            no messageBody then will return None to indicate a CREATE message
+            should be generated.
             :return: dict
             """
         return self.json.get('Message', {}).get('messageBody')

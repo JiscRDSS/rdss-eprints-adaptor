@@ -1,7 +1,7 @@
 import boto3
 
 from moto import mock_s3
-from app import S3Client
+from app.s3_client import S3Client
 
 
 @mock_s3

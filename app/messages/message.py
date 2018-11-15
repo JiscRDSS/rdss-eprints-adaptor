@@ -1,17 +1,15 @@
 import logging
-from .validator import RDSSMessageValidator
 from .message_header import RDSSMessageHeader
 
 logger = logging.getLogger(__name__)
-
-message_validator = RDSSMessageValidator()
 
 
 class BaseRDSSMessageCreator:
     message_class = ''
     message_type = ''
 
-    def __init__(self, instance_id):
+    def __init__(self, message_validator, instance_id):
+        self._message_validator = message_validator
         self._header = RDSSMessageHeader(instance_id)
 
     def generate(self, message_body):
@@ -20,7 +18,7 @@ class BaseRDSSMessageCreator:
             self.message_type,
         )
         logger.info('Generating message %s', message_header['messageId'])
-        return RDSSMessage(message_header, message_body)
+        return RDSSMessage(self._message_validator, message_header, message_body)
 
 
 class MetadataCreate(BaseRDSSMessageCreator):
@@ -35,11 +33,12 @@ class MetadataUpdate(BaseRDSSMessageCreator):
 
 class RDSSMessage:
 
-    def __init__(self, message_header, message_body):
+    def __init__(self, message_validator, message_header, message_body):
         self._message = {
             'messageHeader': message_header,
             'messageBody': message_body
         }
+        self._message_validator = message_validator
         self.validation_errors = []
         self.validate_body()
 
@@ -50,11 +49,9 @@ class RDSSMessage:
         self._message['messageHeader']['errorDescription'] = error_description
 
     def validate_body(self):
-        body_errors = message_validator.message_body_errors(
-            self._message['messageBody']
-        )
-        if body_errors:
-            self.validation_errors.extend(body_errors)
+        errors = self._message_validator.message_errors(self._message)
+        if errors:
+            self.validation_errors.extend(errors)
             self._set_error(*self.error_info)
 
     @property
