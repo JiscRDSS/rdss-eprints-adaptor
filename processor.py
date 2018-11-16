@@ -52,8 +52,7 @@ class OAIPMHAdaptor(object):
         self.s3_bucket = S3Client(s3_bucket_name)
         self.rdss_cdm_remapper = RDSSCDMRemapper(
             jisc_id,
-            organisation_name,
-            oai_pmh_provider
+            organisation_name
         )
         self.message_validator = MessageValidator(
             message_api_version
@@ -115,6 +114,15 @@ class OAIPMHAdaptor(object):
         return s3_file_locations
 
     def _process_record(self, record):
+        """ Undertakes the processing of a single record, converting the 
+            OAI-PMH output to the RDSS CDM, uploading the files associated with 
+            the record to an s3 bucket, creating a `MetadataCreate` or `MetadataUpdate`
+            message, and placing that message on the relevant Kinesis Stream. 
+
+            The `try - except` and subsequent error state storage has been included 
+            almost exclusively to handle an occasional error with file download. This
+            could probably be handled in a more robust way. 
+            """
         logging.info('Processing record [%s]', record['identifier'])
         try:
             s3_objects = self._push_files_to_s3(record)
