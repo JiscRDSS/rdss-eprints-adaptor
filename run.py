@@ -59,7 +59,7 @@ def main():
             s3_bucket_name=env_vars['S3_BUCKET_NAME']
         )
     except Exception:
-        logging.exception('Cannot run the OAI-PMH Adaptor.')
+        logger.exception('Cannot run the OAI-PMH Adaptor.')
         sys.exit(1)
 
     adaptor.run()

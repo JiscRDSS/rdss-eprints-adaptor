@@ -13,7 +13,7 @@ from app.rdss_cdm_remapper import RDSSCDMRemapper
 from app.message_validator import MessageValidator
 from app.messages import MetadataCreate, MetadataUpdate
 
-logger = logging.getLogger(__name__)
+logger = logger.getLogger(__name__)
 
 
 class OAIPMHAdaptor(object):
@@ -81,7 +81,7 @@ class OAIPMHAdaptor(object):
         records = []
         while not records:
             if start_timestamp.date() == today.date():
-                logging.info('Start timestamp %s is today %s', start_timestamp.date(), today.date())
+                logger.info('Start timestamp %s is today %s', start_timestamp.date(), today.date())
                 records = list(itertools.islice(
                     self.oai_pmh_client.fetch_records_from(start_timestamp),
                     self.flow_limit))
@@ -108,9 +108,9 @@ class OAIPMHAdaptor(object):
                 try:
                     os.remove(file_path)
                 except FileNotFoundError:
-                    logging.warning('An error occurred removing file [%s]', file_path)
+                    logger.warning('An error occurred removing file [%s]', file_path)
             else:
-                logging.warning('Unable to download file [%s], skipping file', file_location)
+                logger.warning('Unable to download file [%s], skipping file', file_location)
         return s3_file_locations
 
     def _process_record(self, record):
@@ -123,7 +123,7 @@ class OAIPMHAdaptor(object):
             almost exclusively to handle an occasional error with file download. This
             could probably be handled in a more robust way. 
             """
-        logging.info('Processing record [%s]', record['identifier'])
+        logger.info('Processing record [%s]', record['identifier'])
         try:
             s3_objects = self._push_files_to_s3(record)
             oai_pmh_record = OAIPMHRecord(self.rdss_cdm_remapper, record, s3_objects)
@@ -176,7 +176,7 @@ class OAIPMHAdaptor(object):
             latest_record_state.last_updated)
 
     def _shutdown(self):
-        logging.info('Shutting adaptor down...')
+        logger.info('Shutting adaptor down...')
         if self.kinesis_client is not None:
             self.kinesis_client.put_message_on_queue(PoisonPill)
         if self.message_validator is not None:
@@ -184,7 +184,7 @@ class OAIPMHAdaptor(object):
 
     def run(self):
         for record in self._poll_for_changed_records():
-            logging.info('Processing record [%s]', record)
+            logger.info('Processing record [%s]', record)
             self._process_record(record)
 
         self._shutdown()
