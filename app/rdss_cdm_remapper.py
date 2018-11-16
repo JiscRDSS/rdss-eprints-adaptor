@@ -5,6 +5,8 @@ import uuid
 import json
 from jinja2 import select_autoescape, Environment, PackageLoader
 
+logger = logging.getLogger(__name__)
+
 
 class RDSSCDMRemapper(object):
 
@@ -14,7 +16,7 @@ class RDSSCDMRemapper(object):
         self.env = self._initialise_environment()
 
     def _initialise_environment(self):
-        logging.info('Loading templates in directory [templates] from package [app]')
+        logger.info('Loading templates in directory [templates] from package [app]')
         # We use Jinja2 to template the messages, this block prepares the Jinja2 environment.
         return Environment(
             loader=PackageLoader('app', 'templates'),
@@ -33,16 +35,16 @@ class RDSSCDMRemapper(object):
     def _single_value_from_dc_metadata(self, dc_metadata, key):
         values = dc_metadata.get(key)
         if not values:
-            logging.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)
+            logger.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)
             return None
         if len(values) > 1:
-            logging.warning('DC metadata [\'%s\'] has more than 1 value', key)
+            logger.warning('DC metadata [\'%s\'] has more than 1 value', key)
         return values[0]
 
     def _unique_value_list_from_dc_metadata(self, dc_metadata, key):
         values = dc_metadata.get(key)
         if not values:
-            logging.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)
+            logger.warning('DC metadata [%s] does not contain [\'%s\'] field', dc_metadata, key)
             return []
         return list(set(values))
 
@@ -142,7 +144,7 @@ class RDSSCDMRemapper(object):
         # .jsontemplate file will be parsed and decorated with these values.
         template_name = 'rdss_cdm_3.0.0.jsontemplate'
         template = self.env.get_template(template_name)
-        logging.info('Rendering template [%s] using record [%s]', template_name, record)
+        logger.info('Rendering template [%s] using record [%s]', template_name, record)
         dc_metadata = record['oai_dc']
         return json.loads(template.render({
             'objectUuid': uuid.uuid4(),

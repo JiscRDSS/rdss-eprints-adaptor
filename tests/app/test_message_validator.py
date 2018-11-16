@@ -29,6 +29,7 @@ def test_validate_message_invalid():
 
     assert len(errors) == 1
 
+
 def _get_test_message(file_path):
     with open(file_path, 'rb') as f_in:
         return json.load(f_in)

@@ -5,6 +5,8 @@ from oaipmh.metadata import MetadataRegistry, oai_dc_reader
 from oaipmh.error import NoRecordsMatchError
 from .oaiore.reader import oai_ore_reader
 
+logger = logging.getLogger(__name__)
+
 
 class OAIPMHClient(object):
 
@@ -16,7 +18,7 @@ class OAIPMHClient(object):
         registry = MetadataRegistry()
         registry.registerReader('oai_dc', oai_dc_reader)
         registry.registerReader('ore', oai_ore_reader)
-        logging.info('Initialising OAI client with URL [%s]', url)
+        logger.info('Initialising OAI client with URL [%s]', url)
         return Client(url, registry)
 
     def fetch_records_from(self, from_datetime, until_datetime=None):
@@ -36,20 +38,20 @@ class OAIPMHClient(object):
     def _fetch_records_by_prefix_from(self, metadata_prefix, from_datetime, until_datetime=None):
         try:
             if not until_datetime:
-                logging.info('Querying for %s records from [%s]', metadata_prefix, from_datetime)
+                logger.info('Querying for %s records from [%s]', metadata_prefix, from_datetime)
                 # Fetch all records since the given from_datetime parameter.
                 records = self.client.listRecords(
                     metadataPrefix=metadata_prefix, from_=from_datetime)
-                logging.info('Got %s records since [%s]', metadata_prefix, from_datetime)
+                logger.info('Got %s records since [%s]', metadata_prefix, from_datetime)
             else:
-                logging.info(
+                logger.info(
                     'Querying for %s records from [%s] to [%s]', metadata_prefix,
                     from_datetime, until_datetime)
                 # Fetch all records between the given from_datetime and the given until_datetime
                 records = self.client.listRecords(
                     metadataPrefix=metadata_prefix, from_=from_datetime, until=until_datetime)
-                logging.info('Got %s records between [%s] and [%s]',
-                             metadata_prefix, from_datetime, until_datetime)
+                logger.info('Got %s records between [%s] and [%s]',
+                            metadata_prefix, from_datetime, until_datetime)
 
             if not records:
                 return []
@@ -57,7 +59,7 @@ class OAIPMHClient(object):
                 return dict(self._structured_record(metadata_prefix, r) for r in records)
         except NoRecordsMatchError:
             # Annoyingly, the client throws an exception if no records are found...
-            logging.info('No %s records since [%s]', metadata_prefix, from_datetime)
+            logger.info('No %s records since [%s]', metadata_prefix, from_datetime)
             return []
 
     def _merge_records(self, records_a, records_b):
@@ -72,7 +74,7 @@ class OAIPMHClient(object):
         return {k: v for k, v in records.items() if v.get('oai_dc')}
 
     def _structured_record(self, metadata_prefix, record):
-        logging.info('Converting record [%s]', record[0].identifier())
+        logger.info('Converting record [%s]', record[0].identifier())
         record_dict = {
             'identifier': record[0].identifier(),
             'datestamp': record[0].datestamp(),

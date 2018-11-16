@@ -13,7 +13,7 @@ from app.rdss_cdm_remapper import RDSSCDMRemapper
 from app.message_validator import MessageValidator
 from app.messages import MetadataCreate, MetadataUpdate
 
-logger = logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class OAIPMHAdaptor(object):
@@ -36,7 +36,8 @@ class OAIPMHAdaptor(object):
                  invalid_stream,
                  s3_bucket_name
                  ):
-
+        logger.info('Initialising the OAIPMHAdaptor as a(n) %s adaptor.',
+                    self.USE_ORE[oai_pmh_provider])
         self.state_store = AdaptorStateStore(
             watermark_table_name,
             processed_table_name
@@ -114,14 +115,14 @@ class OAIPMHAdaptor(object):
         return s3_file_locations
 
     def _process_record(self, record):
-        """ Undertakes the processing of a single record, converting the 
-            OAI-PMH output to the RDSS CDM, uploading the files associated with 
+        """ Undertakes the processing of a single record, converting the
+            OAI-PMH output to the RDSS CDM, uploading the files associated with
             the record to an s3 bucket, creating a `MetadataCreate` or `MetadataUpdate`
-            message, and placing that message on the relevant Kinesis Stream. 
+            message, and placing that message on the relevant Kinesis Stream.
 
-            The `try - except` and subsequent error state storage has been included 
+            The `try - except` and subsequent error state storage has been included
             almost exclusively to handle an occasional error with file download. This
-            could probably be handled in a more robust way. 
+            could probably be handled in a more robust way.
             """
         logger.info('Processing record [%s]', record['identifier'])
         try:

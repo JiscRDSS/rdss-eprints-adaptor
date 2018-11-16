@@ -5,6 +5,8 @@ import jsonschema
 
 from app.download_client import DownloadClient
 
+logger = logging.getLogger(__name__)
+
 MODEL_SCHEMA_BASE_URL = 'https://raw.githubusercontent.com/JiscRDSS/rdss-message-api-specificatio' \
                         'n/{api_version}/schemas/{schema_document}'
 MODEL_SCHEMA_DOCUMENTS = [
@@ -60,7 +62,7 @@ class MessageValidator(object):
     def _download_model_schemas(self):
         model_schema_mappings = []
         for model_schema_document in MODEL_SCHEMA_DOCUMENTS:
-            logging.info(
+            logger.info(
                 'Preparing to download model JSON schema document [%s]',
                 model_schema_document['file_name']
             )
@@ -68,13 +70,13 @@ class MessageValidator(object):
                 api_version=self.api_version,
                 schema_document=model_schema_document['file_name']
             )
-            logging.info(
+            logger.info(
                 'Got URL [%s] for model JSON schema document [%s]',
                 url,
                 model_schema_document['file_name']
             )
             model_schema_file = self.download_client.download_file(url)
-            logging.info(
+            logger.info(
                 'Got file [%s] for model JSON schema document [%s]',
                 model_schema_file,
                 model_schema_document['file_name']
@@ -84,9 +86,9 @@ class MessageValidator(object):
 
     def _download_message_schema(self):
         url = MESSAGE_SCHEMA_URL.format(api_version=self.api_version)
-        logging.info('Preparing to download message JSON schema document [%s]', url)
+        logger.info('Preparing to download message JSON schema document [%s]', url)
         message_schema_file = self.download_client.download_file(url)
-        logging.info(
+        logger.info(
             'Got file [%s] for message JSON schema document [%s]',
             message_schema_file,
             url
@@ -94,7 +96,7 @@ class MessageValidator(object):
         return message_schema_file
 
     def message_errors(self, message):
-        logging.info(
+        logger.info(
             'Validating message [%s] against API specification version [%s]',
             message,
             self.api_version
@@ -115,4 +117,4 @@ class MessageValidator(object):
             try:
                 os.remove(file_path)
             except Exception as e:
-                logging.warning('An error occurred deleting file [%s]: %s', file_path, e)
+                logger.warning('An error occurred deleting file [%s]: %s', file_path, e)

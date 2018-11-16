@@ -26,11 +26,11 @@ class AdaptorStateStore(object):
             dynamodb = boto3.resource('dynamodb')
             table = dynamodb.Table(table_name)
             table.load()
-            logging.info('Successfully initialised connection to '
-                         '%s', table_name)
+            logger.info('Successfully initialised connection to '
+                        '%s', table_name)
             return table
         except ClientError:
-            logging.exception('%s initialisation failed.', table_name)
+            logger.exception('%s initialisation failed.', table_name)
 
     def put_record_state(self, record_state):
         """ Attempts to put a RecordState into the AdaptorStateStore.
@@ -39,12 +39,12 @@ class AdaptorStateStore(object):
             :record_state: RecordState
             """
         try:
-            logging.info('Putting RecordState for %s into %s.',
-                         record_state.pure_uuid, self.processed_table.name)
+            logger.info('Putting RecordState for %s into %s.',
+                        record_state.pure_uuid, self.processed_table.name)
             self.processed_table.put_item(Item=record_state.json)
         except ClientError:
-            logging.exception('Unable to put %s into %s.',
-                              record_state.json, self.processed_table.name)
+            logger.exception('Unable to put %s into %s.',
+                             record_state.json, self.processed_table.name)
 
     def get_record_state(self, oai_pmh_identifier):
         """ Attempts to retrieve by oai_pmh_identifier the state of a record from the
@@ -54,15 +54,15 @@ class AdaptorStateStore(object):
             :returns: RecordState
             """
         try:
-            logging.info('Getting RecordState for %s from %s.',
-                         oai_pmh_identifier, self.processed_table.name)
+            logger.info('Getting RecordState for %s from %s.',
+                        oai_pmh_identifier, self.processed_table.name)
             response = self.processed_table.get_item(
                 Key={'Identifier': oai_pmh_identifier})
             item = response.get('Item', {})
             return RecordState(item)
         except ClientError:
-            logging.exception('Unable to get RecordState for %s from %s.',
-                              oai_pmh_identifier, self.processed_table.name)
+            logger.exception('Unable to get RecordState for %s from %s.',
+                             oai_pmh_identifier, self.processed_table.name)
 
     def get_high_watermark(self):
         """ Retrieves the datetime of the most recently modified record
@@ -70,7 +70,7 @@ class AdaptorStateStore(object):
             :returns: DateTime
             """
         try:
-            logging.info(
+            logger.info(
                 'Retrieving high watermark from %s.', self.watermark_table.name)
             response = self.watermark_table.get_item(
                 Key={'Key': self.HIGH_WATERMARK_KEY})
@@ -80,7 +80,7 @@ class AdaptorStateStore(object):
             else:
                 return None
         except ClientError:
-            logging.exception(
+            logger.exception(
                 'Unable to get a high watermark from %s.', self.watermark_table.name)
 
     def update_high_watermark(self, high_watermark_datetime):
@@ -88,16 +88,16 @@ class AdaptorStateStore(object):
             :high_watermark_datetime: String
             """
         try:
-            logging.info('Setting high watermark as %s',
-                         high_watermark_datetime)
+            logger.info('Setting high watermark as %s',
+                        high_watermark_datetime)
             self.watermark_table.put_item(Item={
                 'Key': self.HIGH_WATERMARK_KEY,
                 'Value': high_watermark_datetime,
                 'LastUpdated': datetime.datetime.now().isoformat()
             })
         except ClientError:
-            logging.exception('Unable to put %s into %s.',
-                              high_watermark_datetime, self.watermark_table.name)
+            logger.exception('Unable to put %s into %s.',
+                             high_watermark_datetime, self.watermark_table.name)
 
 
 class RecordState(object):

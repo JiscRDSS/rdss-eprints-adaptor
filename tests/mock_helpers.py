@@ -3,8 +3,9 @@ import moto
 import contextlib
 import functools
 
+
 def mock_oai_pmh_list_records():
-    return 
+    return
 
 
 def mock_oai_pmh_adaptor_infra(oai_pmh_provider):

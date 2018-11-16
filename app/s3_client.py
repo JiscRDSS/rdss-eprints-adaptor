@@ -6,6 +6,8 @@ import ntpath
 
 from urllib.parse import urlparse
 
+logger = logging.getLogger(__name__)
+
 
 class S3Client(object):
 
@@ -14,7 +16,7 @@ class S3Client(object):
         self.client = self._initialise_client()
 
     def _initialise_client(self):
-        logging.info('Initialising Boto3 S3 client')
+        logger.info('Initialising Boto3 S3 client')
         return boto3.client('s3')
 
     def push_to_bucket(self, remote_url, file_path):
@@ -23,7 +25,7 @@ class S3Client(object):
 
         # Push the file into S3. By using the upload_fileobj method, this upload will be executed
         # using multipart uploads.
-        logging.info(
+        logger.info(
             'Pushing file [%s] to S3 Bucket [%s] with key [%s]',
             file_path,
             self.bucket_name,
@@ -40,7 +42,7 @@ class S3Client(object):
                     'md5chksum': md5_checksum
                 }
             )
-        logging.info(
+        logger.info(
             'Finished pushing file [%s] to S3 Bucket [%s] with key [%s]',
             file_path,
             self.bucket_name,
@@ -48,7 +50,7 @@ class S3Client(object):
         )
 
         # Now we want to fetch some metadata about the object, specifically the size of the file.
-        logging.info(
+        logger.info(
             'Fetching S3 object metadata for object [%s] in S3 Bucket [%s]',
             object_key,
             self.bucket_name
@@ -57,7 +59,7 @@ class S3Client(object):
             Bucket=self.bucket_name,
             Key=object_key
         )
-        logging.info(
+        logger.info(
             'Got S3 object metadata for object [%s] in S3 Bucket [%s]',
             object_key,
             self.bucket_name
@@ -83,10 +85,10 @@ class S3Client(object):
     def _calculate_file_checksum(self, file_path):
         # We can query the existing file on disk to calculate the checksum value.
         hash_md5 = hashlib.md5()
-        logging.info('Calculating MD5 checksum for file [%s]', file_path)
+        logger.info('Calculating MD5 checksum for file [%s]', file_path)
         with open(file_path, 'rb') as file_in:
             for chunk in iter(lambda: file_in.read(4096), b''):
                 hash_md5.update(chunk)
         checksum = base64.b64encode(hash_md5.digest()).decode('utf-8')
-        logging.info('Got MD5 checksum value [%s] for file[%s]', checksum, file_path)
+        logger.info('Got MD5 checksum value [%s] for file[%s]', checksum, file_path)
         return checksum
