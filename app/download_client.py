@@ -4,8 +4,6 @@ import os
 import requests
 import tempfile
 
-from tqdm import tqdm
-
 logger = logging.getLogger(__name__)
 
 
@@ -41,16 +39,8 @@ class DownloadClient(object):
         # we're only interested in successful downloads.
         if response.status_code == 200:
 
-            # Execute the download, using tqdm to provide us with a progress bar for the download.
-            total_size = int(response.headers.get('content-length', 0))
-            wrote = 0
             with open(target_file_path, 'wb') as handle:
-                for data in tqdm(
-                        response.iter_content(1024),
-                        total=math.ceil(total_size // 1024),
-                        unit='KB'
-                ):
-                    wrote = wrote + len(data)
+                for data in response.iter_content(1024):
                     handle.write(data)
             logger.info(
                 'Download complete, closing descriptor [%s] for [%s]',
