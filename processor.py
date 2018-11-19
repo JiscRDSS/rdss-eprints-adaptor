@@ -8,6 +8,7 @@ from app.oai_pmh_client import OAIPMHClient
 from app.oai_pmh_record import OAIPMHRecord
 from app.state_storage import AdaptorStateStore, RecordState
 from app.kinesis_client import KinesisClient, PoisonPill
+from app.download_client import DownloadClient
 from app.s3_client import S3Client
 from app.rdss_cdm_remapper import RDSSCDMRemapper
 from app.message_validator import MessageValidator
@@ -46,6 +47,7 @@ class OAIPMHAdaptor(object):
             oai_pmh_endpoint_url,
             self.USE_ORE[oai_pmh_provider]
         )
+        self.download_client = DownloadClient()
         self.kinesis_client = KinesisClient(
             output_stream,
             invalid_stream
