@@ -52,7 +52,7 @@ class OAIPMHAdaptor(object):
             output_stream,
             invalid_stream
         )
-        self.s3_bucket = S3Client(s3_bucket_name)
+        self.s3_client = S3Client(s3_bucket_name)
         self.rdss_cdm_remapper = RDSSCDMRemapper(
             jisc_id,
             organisation_name
