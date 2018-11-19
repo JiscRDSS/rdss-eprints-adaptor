@@ -160,6 +160,7 @@ class OAIPMHAdaptor(object):
 
             record_state.update_with_message(message)
         except Exception as e:
+            logger.error("Processing record %s raised error %s", record['identifier'], e)
             record_state = RecordState.create_from_error(
                 record['identifier'],
                 dateutil.parser.parse(record['datestamp']),
