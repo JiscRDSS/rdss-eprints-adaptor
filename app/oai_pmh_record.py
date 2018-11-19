@@ -19,7 +19,7 @@ class OAIPMHRecord(object):
     @property
     def modified_date(self):
         date_string = self._record_dict['datestamp']
-        return date_string
+        return dateutil.parser.parse(date_string)
 
     @property
     def rdss_canonical_metadata(self):

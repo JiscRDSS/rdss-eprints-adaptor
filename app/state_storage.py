@@ -106,7 +106,7 @@ class RecordState(object):
         """ Initialise a RecordState object with the response from the
             dynamodb AdaptorStateStore.
             """
-        logger.info('Initialising RecordState from state_store for %s', state_json['Identifier'])
+        logger.info('Initialising RecordState from AdaptorStateStore response for %s', state_json['Identifier'])
         self.json = state_json
 
     @property
@@ -136,7 +136,7 @@ class RecordState(object):
         """ Initialise a RecordState object with a OAIPMHRecord object.
             Creates a dummy messageBody for comparison.
             """
-        logger.info('Initialising RecordState from record for %s', record.oai_pmh_identifier)
+        logger.info('Initialising RecordState from OAIPMHRecord for %s', record.oai_pmh_identifier)
         record_json = {
             'Identifier': record.oai_pmh_identifier,
             'LastUpdated': record.modified_date.isoformat(),
@@ -148,7 +148,7 @@ class RecordState(object):
 
     @classmethod
     def create_from_error(cls, identifier, update_date, error_string):
-        logger.info('Initialising RecordState from error for %s', identifier)
+        logger.info('Initialising RecordState after encountering and Error for %s', identifier)
         record_json = {
             'Identifier': identifier,
             'LastUpdated': update_date.isoformat(),
