@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 class OAIPMHRecord(object):
 
     def __init__(self, rdss_cdm_remapper, record_dict, s3_objects):
+        logger.info('Initialising OAIPMHRecord for %s', record_dict['identifier'])
         self.rdss_cdm_remapper = rdss_cdm_remapper
         self._record_dict = record_dict
         self._s3_objects = s3_objects
@@ -18,7 +19,7 @@ class OAIPMHRecord(object):
     @property
     def modified_date(self):
         date_string = self._record_dict['datestamp']
-        return dateutil.parser.parse(date_string)
+        return date_string
 
     @property
     def rdss_canonical_metadata(self):
@@ -31,6 +32,7 @@ class OAIPMHRecord(object):
             returns an appropriately versioned RDSS CDM of the record.
             """
         metadata = self.rdss_canonical_metadata
+        logger.info('Versioning with %s as previous version of this record.')
         related_ids = metadata.get('objectRelatedIdentifier', [])
         related_ids.append({
             'identifier': {
