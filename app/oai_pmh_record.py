@@ -1,4 +1,3 @@
-import dateutil.parser
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,8 +17,7 @@ class OAIPMHRecord(object):
 
     @property
     def modified_date(self):
-        date_string = self._record_dict['datestamp']
-        return dateutil.parser.parse(date_string)
+        return self._record_dict['datestamp']
 
     @property
     def rdss_canonical_metadata(self):

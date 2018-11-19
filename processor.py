@@ -2,6 +2,7 @@ import datetime
 import dateutil
 import os
 import itertools
+import json
 import logging
 
 from app.oai_pmh_client import OAIPMHClient
@@ -38,7 +39,7 @@ class OAIPMHAdaptor(object):
                  s3_bucket_name
                  ):
         logger.info('Initialising the OAIPMHAdaptor as a(n) %s adaptor.',
-                    self.USE_ORE[oai_pmh_provider])
+                    oai_pmh_provider)
         self.state_store = AdaptorStateStore(
             watermark_table_name,
             processed_table_name
@@ -61,6 +62,7 @@ class OAIPMHAdaptor(object):
             message_api_version
         )
         self.flow_limit = int(flow_limit)
+        self.oai_pmh_provider = oai_pmh_provider
 
     def _get_latest_datetime(self):
         """ Returns the latest datetime from the state store, or
@@ -133,16 +135,16 @@ class OAIPMHAdaptor(object):
 
             record_state = RecordState.create_from_record(oai_pmh_record)
             prev_record_state = self.state_store.get_record_state(
-                record.oai_pmh_identifier)
+                oai_pmh_record.oai_pmh_identifier)
 
             if not prev_record_state.message_body or not prev_record_state.successful_create:
-                message_creator = MetadataCreate(self.message_validator, self.instance_id)
+                message_creator = MetadataCreate(self.message_validator, self.oai_pmh_provider)
                 message = message_creator.generate(
                     oai_pmh_record.rdss_canonical_metadata
                 )
 
             elif record_state != prev_record_state:
-                message_creator = MetadataUpdate(self.message_validator, self.instance_id)
+                message_creator = MetadataUpdate(self.message_validator, self.oai_pmh_provider)
                 message = message_creator.generate(
                     oai_pmh_record.versioned_rdss_canonical_metadata(
                         prev_record_state.object_uuid
@@ -155,29 +157,34 @@ class OAIPMHAdaptor(object):
                     'Skipping %s as no change in RDSS CDM manifestation of record.',
                     oai_pmh_record.oai_pmh_identifier)
 
-            if message.is_invalid:
-                self.kinesis_client.put_invalid_message_on_queue(message)
+            if message.is_valid:
+                self.kinesis_client.put_message_on_queue(json.dumps(message.as_json))
             else:
-                self.kinesis_client.put_message_on_queue(message)
+                self.kinesis_client.put_invalid_message_on_queue(json.dumps(message.as_json))
 
             record_state.update_with_message(message)
+            self._update_adaptor_state(record_state)
         except Exception as e:
-            logger.error("Processing record %s raised error %s", record['identifier'], e)
+            logger.error('Processing record %s raised error %s', record['identifier'], e)
             record_state = RecordState.create_from_error(
                 record['identifier'],
-                dateutil.parser.parse(record['datestamp']),
+                record['datestamp'],
                 str(e)
             )
-        self._update_adaptor_state(record_state)
+            self._update_adaptor_state(record_state)
+            raise
 
     def _update_adaptor_state(self, latest_record_state):
         """ Updates the record in the processed state store, and updates
-            the high watermark to be the updated datetime of this record.
+            the high watermark to be the modified date of this record with one
+            second added - oai-pmh API's don't seem to respond to a timedelta
+            smaller than this.
             :latest_record_state: RecordState
             """
-        self.state_store.put_dataset_state(latest_record_state)
-        self.state_store.update_high_watermark(
-            latest_record_state.last_updated)
+        new_high_watermark = dateutil.parser.parse(
+            latest_record_state.last_updated) + datetime.timedelta(seconds=1)
+        self.state_store.put_record_state(latest_record_state)
+        self.state_store.update_high_watermark(new_high_watermark.isoformat())
 
     def _shutdown(self):
         logger.info('Shutting adaptor down...')

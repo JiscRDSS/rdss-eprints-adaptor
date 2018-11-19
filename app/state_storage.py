@@ -40,7 +40,7 @@ class AdaptorStateStore(object):
             """
         try:
             logger.info('Putting RecordState for %s into %s.',
-                        record_state.pure_uuid, self.processed_table.name)
+                        record_state.oai_pmh_identifier, self.processed_table.name)
             self.processed_table.put_item(Item=record_state.json)
         except ClientError:
             logger.exception('Unable to put %s into %s.',
@@ -106,7 +106,8 @@ class RecordState(object):
         """ Initialise a RecordState object with the response from the
             dynamodb AdaptorStateStore.
             """
-        logger.info('Initialising RecordState from AdaptorStateStore response for %s', state_json['Identifier'])
+        logger.info('Initialising RecordState from AdaptorStateStore response for %s',
+                    state_json.get('Identifier', 'a new record'))
         self.json = state_json
 
     @property

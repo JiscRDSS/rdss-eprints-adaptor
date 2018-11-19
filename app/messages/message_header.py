@@ -1,7 +1,11 @@
 import re
 import uuid
 import datetime
-import subprocess
+import logging
+
+from ec2_metadata import ec2_metadata
+
+logger = logging.getLogger(__name__)
 
 RDSS_ERROR_CODES = {
     'GENERR001': 'The Message Body is not in the expected format, for example'
@@ -61,14 +65,17 @@ class RDSSMessageHeader(object):
             $
             ''', re.VERBOSE | re.IGNORECASE)
 
-    def __init__(self, instance_id):
-        self._machine_id = instance_id
+    def __init__(self, oai_pmh_provider):
+        self.oai_pmh_provider = oai_pmh_provider
+        self._machine_id = 'rdss-oai-pmh-adaptor-{}'.format(self.oai_pmh_provider)
         self._machine_address = self._get_machine_ip()
 
     def _get_machine_ip(self):
-        return subprocess.check_output(
-            ['sh', '-c', "/sbin/ip route|awk '/default/ { print $3 }'"]
-        ).decode('utf-8').strip()
+        try:
+            return ec2_metadata.private_ipv4
+        except Exception:
+            logger.exception('An error occurred retrieving EC2 metadata private ipv4 address')
+            return '0.0.0.0'
 
     def _message_id(self):
         return str(uuid.uuid4())
@@ -139,8 +146,9 @@ class RDSSMessageHeader(object):
             'messageType': self._message_type(message_type),
             'messageTimings': self._message_timings(now),
             'messageHistory': self._message_history(now),
+            'messageSequence': self._message_sequence(str(uuid.uuid4()), 1, 1),
             'version': self.MESSAGE_API_VERSION,
-            'generator': 'pure-adaptor'
+            'generator': self.oai_pmh_provider
         }
 
         if correlation_id:
@@ -148,10 +156,6 @@ class RDSSMessageHeader(object):
 
         if return_address:
             fields['returnAddress'] = return_address
-
-        if message_sequence:
-            fields['messageSequence'] = self._message_sequence(
-                *message_sequence)
 
         if error_code:
             fields['errorCode'] = self._error_code(error_code)

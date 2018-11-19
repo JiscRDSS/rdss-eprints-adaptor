@@ -6,13 +6,14 @@ import sys
 from processor import OAIPMHAdaptor
 
 logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.INFO,
-        format='%(asctime)s [%(threadName)s] [%(levelname)s] %(name)s - %(message)s'
-        )
+    stream=sys.stdout,
+    level=logging.INFO,
+    format='%(asctime)s [%(threadName)s] [%(levelname)s] %(name)s - %(message)s'
+)
 
 
 logger = logging.getLogger(__name__)
+
 
 def all_env_vars_exist(var_names):
     """ Ensure all environment variables exist and return them.
