@@ -1,6 +1,5 @@
 # RDSS OAI-PMH Adaptor
 
-
 [![Build Status](https://travis-ci.com/JiscRDSS/rdss-oai-pmh-adaptor.svg?branch=develop)](https://travis-ci.com/JiscRDSS/rdss-oai-pmh-adaptor)
 
 ## Introduction
