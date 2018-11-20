@@ -5,14 +5,14 @@ python:
   - "3.6"
 
 env:
-  - AWS_DEFAULT_REGION=eu-west-2 AWS_ACCESS_KEY_ID=dummy AWS_SECRET_ACCESS_KEY=dummy
+  - AWS_DEFAULT_REGION=eu-west-2 AWS_ACCESS_KEY_ID=dummy AWS_SECRET_ACCESS_KEY=dummy2 TO_CONFIG=/tmp/nowhere BOTO_CONFIG=/dev/null
 
 before_install:
   - sudo apt-get update -yqq
 
 before_script:
-  - pip install -r requirements.txt
+  - make deps
 
 script:
-  - pre-commit run --all-files --verbose
-  - pytest --cov-branch --cov-report=xml --cov=.
+  - make lint
+  - make test
