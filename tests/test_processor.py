@@ -3,7 +3,6 @@ from processor import OAIPMHAdaptor
 from .mock_helpers import mock_oai_pmh_adaptor_infra
 
 
-@pytest.mark.skip(reason='Need to finish mock infra for this.')
 @mock_oai_pmh_adaptor_infra()
 def test_dspace_metadata_create():
     adaptor = OAIPMHAdaptor(
