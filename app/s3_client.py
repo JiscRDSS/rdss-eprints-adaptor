@@ -83,7 +83,7 @@ class S3Client(object):
         return remote_path
 
     def _calculate_file_checksum(self, file_path):
-        """ Calculates the MD5 checksum of the file on disk, returning both the 
+        """ Calculates the MD5 checksum of the file on disk, returning both the
             checksum and the B64 encoded checksum for use in s3 uploads.
             """
         hash_md5 = hashlib.md5()
@@ -91,7 +91,7 @@ class S3Client(object):
         with open(file_path, 'rb') as file_in:
             for chunk in iter(lambda: file_in.read(4096), b''):
                 hash_md5.update(chunk)
-        checksum = hash_md5.digest()
-        b64_checksum = base64.b64encode(checksum).decode('utf-8')
+        checksum = hash_md5.hexdigest()
+        b64_checksum = base64.b64encode(hash_md5.digest()).decode('utf-8')
         logger.info('Got MD5 checksum value [%s] for file[%s]', checksum, file_path)
         return checksum, b64_checksum

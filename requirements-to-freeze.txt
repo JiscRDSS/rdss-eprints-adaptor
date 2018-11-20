@@ -5,8 +5,8 @@ jsonschema
 mock
 moto
 pre_commit
-pytest
 pyoai
+pytest
 python_dateutil
 requests
 requests-mock
