@@ -1,10 +1,9 @@
 import logging
-import math
 import os
 import requests
 import tempfile
 
-from tqdm import tqdm
+logger = logging.getLogger(__name__)
 
 
 class DownloadClient(object):
@@ -26,31 +25,23 @@ class DownloadClient(object):
     def _get_temp_file_name(self):
         # Generate a temporary file with the appropriate prefix and suffix.
         temp_file = tempfile.mkstemp(prefix='oai_pmh_adaptor-', suffix='.download')
-        logging.info('Generated temporary file [%s]', temp_file)
+        logger.info('Generated temporary file [%s]', temp_file)
         return temp_file
 
     def _do_download_file(self, url, target_file_descriptor, target_file_path):
         # Initialise the download by getting a handle on the response object.
-        logging.info('Downloading URL [%s] to file [%s]', url, target_file_path)
+        logger.info('Downloading URL [%s] to file [%s]', url, target_file_path)
         response = requests.get(url, stream=True)
-        logging.info('Got HTTP response [%s] from URL [%s]', response, url)
+        logger.info('Got HTTP response [%s] from URL [%s]', response, url)
 
         # EPrints currently returns 401 status codes for some files. We can ignore these for now,
         # we're only interested in successful downloads.
         if response.status_code == 200:
 
-            # Execute the download, using tqdm to provide us with a progress bar for the download.
-            total_size = int(response.headers.get('content-length', 0))
-            wrote = 0
             with open(target_file_path, 'wb') as handle:
-                for data in tqdm(
-                        response.iter_content(1024),
-                        total=math.ceil(total_size // 1024),
-                        unit='KB'
-                ):
-                    wrote = wrote + len(data)
+                for data in response.iter_content(1024):
                     handle.write(data)
-            logging.info(
+            logger.info(
                 'Download complete, closing descriptor [%s] for [%s]',
                 target_file_descriptor,
                 target_file_path
@@ -59,11 +50,11 @@ class DownloadClient(object):
             return True
         else:
             # We didn't get a 200 status code, close and delete the file and return false.
-            logging.warning(
+            logger.warning(
                 'Received non-200 HTTP status code for URL [%s], cannot access target for download',
                 url
             )
-            logging.info('Deleting temporary file [%s]', target_file_path)
+            logger.info('Deleting temporary file [%s]', target_file_path)
             os.close(target_file_descriptor)
             os.remove(target_file_path)
             return False

@@ -1,6 +1,6 @@
 from mock import patch
 
-from app import OAIPMHClient
+from app.oai_pmh_client import OAIPMHClient
 from dateutil import parser
 from xml.dom import minidom
 from urllib.parse import parse_qs

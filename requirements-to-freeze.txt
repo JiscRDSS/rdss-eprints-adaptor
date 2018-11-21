@@ -1,0 +1,12 @@
+boto3
+ec2_metadata
+Jinja2
+jsonschema
+mock
+moto
+pre_commit
+pyoai
+pytest
+python_dateutil
+requests
+requests-mock
