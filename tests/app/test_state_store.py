@@ -83,6 +83,15 @@ def test_adaptor_state_store(record_state):
 
 
 @moto.mock_dynamodb2
+def test_adaptor_state_store_record_last_updated(record_state):
+    state_store = AdaptorStateStore(*setup_dynamodb_tables())
+    state_store.put_record_state(record_state)
+    last_updated = state_store.get_record_last_updated(
+        record_state.oai_pmh_identifier)
+    assert dateutil.parser.parse(record_state.last_updated) == last_updated
+
+
+@moto.mock_dynamodb2
 def test_adaptor_state_store_latest(modified_date):
     state_store = AdaptorStateStore(*setup_dynamodb_tables())
     state_store.update_high_watermark(modified_date.isoformat())

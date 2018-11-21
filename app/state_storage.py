@@ -64,10 +64,32 @@ class AdaptorStateStore(object):
             logger.exception('Unable to get RecordState for %s from %s.',
                              oai_pmh_identifier, self.processed_table.name)
 
+    def get_record_last_updated(self, oai_pmh_identifier):
+        """ Attempts to retrieve by oai_pmh_identifier the LastUpdated datetime
+            of the record.
+            :oai_pmh_identifier: String
+            :returns: DateTime or None
+            """
+        try:
+            logger.info('Getting LastUpdated for %s from %s.',
+                        oai_pmh_identifier, self.processed_table.name)
+            response = self.processed_table.get_item(
+                Key={'Identifier': oai_pmh_identifier},
+                ProjectionExpression='LastUpdated'
+            )
+            last_updated_string = response.get('Item', {}).get('LastUpdated')
+            if last_updated_string:
+                return dateutil.parser.parse(last_updated_string)
+            else:
+                return None
+        except ClientError:
+            logger.exception('Unable to get LastUpdated for %s from %s.',
+                             oai_pmh_identifier, self.processed_table.name)
+
     def get_high_watermark(self):
         """ Retrieves the datetime of the most recently modified record
             object from previous runs of the adaptor.
-            :returns: DateTime
+            :returns: DateTime or None
             """
         try:
             logger.info(

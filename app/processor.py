@@ -74,6 +74,16 @@ class OAIPMHAdaptor(object):
             self.state_store.update_high_watermark(latest_datetime.isoformat())
         return latest_datetime
 
+    def _record_not_already_processed(self, record):
+        """ Determines whether this particular manifestation of the record has
+            already been processed by comparing the update datetimes of record
+            returned from the OAI-PMH API and the stored RecordState.
+            Necessary as the EPrints OAI-PMH `from` and `until` queries doesn't
+            have a granularity of seconds (or less).
+            """
+        last_updated = self.state_store.get_record_last_updated(record['identifier'])
+        return not record['datestamp'] == last_updated
+
     def _poll_for_changed_records(self):
         """ Queries the OAI-PMH endpoint for a limited number of changed records,
             determined by the flow_limit set for the adaptor. As the number of desired
@@ -88,13 +98,17 @@ class OAIPMHAdaptor(object):
             if start_timestamp.date() == today.date():
                 logger.info('Start timestamp %s is today %s', start_timestamp.date(), today.date())
                 records = list(itertools.islice(
-                    self.oai_pmh_client.fetch_records_from(start_timestamp),
+                    filter(self._record_not_already_processed,
+                           self.oai_pmh_client.fetch_records_from(start_timestamp)
+                           ),
                     self.flow_limit))
                 break
             else:
                 until_timestamp = start_timestamp + datetime.timedelta(days=1)
                 records = list(itertools.islice(
-                    self.oai_pmh_client.fetch_records_from(start_timestamp, until_timestamp),
+                    filter(self._record_not_already_processed,
+                           self.oai_pmh_client.fetch_records_from(start_timestamp, until_timestamp)
+                           ),
                     self.flow_limit))
                 start_timestamp = until_timestamp
         return records
