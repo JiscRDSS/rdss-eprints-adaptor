@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from processor import OAIPMHAdaptor
+from app.processor import OAIPMHAdaptor
 
 logging.basicConfig(
     stream=sys.stdout,

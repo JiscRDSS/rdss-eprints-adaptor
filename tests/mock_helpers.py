@@ -3,11 +3,38 @@ import moto
 import boto3
 import contextlib
 import functools
+import responses
 
+from xml.dom import minidom
+from urllib.parse import parse_qs
 
-def mock_oai_pmh_list_records():
-    return
+def _get_xml_file(file_path):
+    return minidom.parse(file_path).toxml()
 
+class MockResponse(object):
+
+    def __init__(self, response_data, status_code, status_msg):
+        self.response_data = response_data
+        self.status_code = status_code
+        self.status_msg = status_msg
+        self.headers = {'Content-Type': 'text/xml; charset=UTF-8'}
+
+    def read(self):
+        return self.response_data
+
+    def close(self):
+        pass
+
+def mock_oai_response_to_prefix(*args, **kwargs):
+    """ Extracts metadataPrefix being used in call to urlopen by the underlying
+        oaipmh client and returns appropriate response.
+        """
+    prefix = parse_qs(args[0].data)[b'metadataPrefix'][0]
+    responses = {
+        b'ore': MockResponse(_get_xml_file('tests/app/data/ore_response.xml'), 200, 'OK'),
+        b'oai_dc': MockResponse(_get_xml_file('tests/app/data/oai_dc_response.xml'), 200, 'OK')
+    }
+    return responses[prefix]
 
 def setup_mock_kinesis_streams():
     output_stream_name = 'rdss_output_stream_test'
@@ -60,8 +87,8 @@ def mock_oai_pmh_adaptor_infra():
         (moto.mock_s3, [], {}),
         (
             mock.patch,
-            ['oaipmh.client.Client.listRecords'],
-            {'side_effect': mock_oai_pmh_list_records()},
+            ['oaipmh.client.urllib2.urlopen'],
+            {'side_effect': mock_oai_response_to_prefix},
         ),
     ]
 
@@ -78,6 +105,11 @@ def mock_oai_pmh_adaptor_infra():
                 setup_mock_kinesis_streams()
                 setup_mock_dynamodb_tables()
                 setup_mock_s3_bucket()
+                # The following two patches of `responses` are required to deal with an issue
+                # where moto will catch and mock all request.get()'s v. 
+                # https://github.com/spulec/moto/issues/1026
+                responses.add_passthru('https://')
+                responses.add_passthru('http://')
                 return func(*args, **kwargs)
         return wrapper
     return decorator

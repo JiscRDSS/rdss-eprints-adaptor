@@ -71,7 +71,7 @@ class OAIPMHAdaptor(object):
         latest_datetime = self.state_store.get_high_watermark()
         if not latest_datetime:
             latest_datetime = datetime.datetime(2000, 1, 1, 0, 0)
-            self.state_store.update_high_watermark(latest_datetime)
+            self.state_store.update_high_watermark(latest_datetime.isoformat())
         return latest_datetime
 
     def _poll_for_changed_records(self):
