@@ -8,8 +8,10 @@ import responses
 from xml.dom import minidom
 from urllib.parse import parse_qs
 
+
 def _get_xml_file(file_path):
     return minidom.parse(file_path).toxml()
+
 
 class MockResponse(object):
 
@@ -25,6 +27,7 @@ class MockResponse(object):
     def close(self):
         pass
 
+
 def mock_oai_response_to_prefix(*args, **kwargs):
     """ Extracts metadataPrefix being used in call to urlopen by the underlying
         oaipmh client and returns appropriate response.
@@ -35,6 +38,7 @@ def mock_oai_response_to_prefix(*args, **kwargs):
         b'oai_dc': MockResponse(_get_xml_file('tests/app/data/oai_dc_response.xml'), 200, 'OK')
     }
     return responses[prefix]
+
 
 def setup_mock_kinesis_streams():
     output_stream_name = 'rdss_output_stream_test'
@@ -106,7 +110,7 @@ def mock_oai_pmh_adaptor_infra():
                 setup_mock_dynamodb_tables()
                 setup_mock_s3_bucket()
                 # The following two patches of `responses` are required to deal with an issue
-                # where moto will catch and mock all request.get()'s v. 
+                # where moto will catch and mock all request.get()'s v.
                 # https://github.com/spulec/moto/issues/1026
                 responses.add_passthru('https://')
                 responses.add_passthru('http://')

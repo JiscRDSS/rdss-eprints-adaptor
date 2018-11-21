@@ -2,7 +2,8 @@ import pytest
 from app.processor import OAIPMHAdaptor
 from .mock_helpers import mock_oai_pmh_adaptor_infra
 
-@pytest.mark.skip(reason="TODO: Mocking needs more work.")
+
+@pytest.mark.skip(reason='TODO: Mocking needs more work.')
 @mock_oai_pmh_adaptor_infra()
 def test_dspace_metadata_create():
     adaptor = OAIPMHAdaptor(
@@ -18,7 +19,7 @@ def test_dspace_metadata_create():
         invalid_stream='rdss_invalid_stream_test',
         s3_bucket_name='adaptor-test'
     )
-    try: 
+    try:
         adaptor.run()
     except Exception as e:
         adaptor._shutdown()
