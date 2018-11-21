@@ -21,6 +21,6 @@ def test_dspace_metadata_create():
     )
     try:
         adaptor.run()
-    except Exception as e:
+    except Exception:
         adaptor._shutdown()
         raise
